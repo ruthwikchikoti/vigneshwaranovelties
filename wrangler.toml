@@ -1,0 +1,6 @@
+# Cloudflare Pages config for Vigneshwara Novelties.
+# Used by `wrangler pages deploy` after `next-on-pages` builds the project.
+name = "vigneshwara-novelties"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"

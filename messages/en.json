@@ -1,0 +1,137 @@
+{
+  "site": {
+    "name": "Vigneshwara Novelties",
+    "tagline": "An heirloom of jewelry & gifting",
+    "description": "A premium digital showroom of jewelry, silver and gift articles."
+  },
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "collections": "Collections",
+    "offers": "Offers",
+    "about": "About",
+    "contact": "Contact",
+    "search": "Search",
+    "cart": "Inquiry",
+    "whatsapp": "WhatsApp"
+  },
+  "hero": {
+    "eyebrow": "Est. 1998 — Andhra Pradesh",
+    "lineOne": "Heirlooms,",
+    "lineTwo": "made to be",
+    "lineThree": "remembered.",
+    "subline": "Curated jewelry, silver and gift articles — a digital showroom for our village & beyond.",
+    "ctaPrimary": "Browse Collections",
+    "ctaSecondary": "Inquire on WhatsApp"
+  },
+  "sections": {
+    "featured": "Featured",
+    "featuredSub": "Pieces our patrons return for",
+    "trending": "Trending Now",
+    "trendingSub": "Most loved this season",
+    "newArrivals": "New Arrivals",
+    "newArrivalsSub": "Fresh into the showroom",
+    "categories": "Explore Collections",
+    "categoriesSub": "Browse by craft and occasion",
+    "offers": "Today's Offers",
+    "offersSub": "Limited windows of generosity",
+    "gifting": "The Art of Gifting",
+    "giftingSub": "Hand-picked for festivals & milestones"
+  },
+  "product": {
+    "addToInquiry": "Add to Inquiry",
+    "added": "Added",
+    "buyNow": "Buy Now",
+    "inquireWhatsapp": "Inquire on WhatsApp",
+    "viewDetails": "View Details",
+    "in_stock": "In stock",
+    "made_to_order": "Made to order",
+    "sold_out": "Sold out",
+    "originalPrice": "Original",
+    "youSave": "You save",
+    "share": "Share",
+    "specifications": "Specifications",
+    "description": "Description",
+    "category": "Category",
+    "sku": "SKU",
+    "tags": "Tags",
+    "noProducts": "No products found.",
+    "viewAll": "View all",
+    "price": "Price",
+    "from": "from"
+  },
+  "cart": {
+    "title": "Your Inquiry",
+    "subtitle": "Send a single message about every piece you love.",
+    "empty": "Your inquiry list is empty.",
+    "emptyCta": "Browse Collections",
+    "remove": "Remove",
+    "qty": "Quantity",
+    "subtotal": "Estimated Subtotal",
+    "subtotalNote": "Final pricing confirmed on call by our team.",
+    "submitInquiry": "Submit Inquiry",
+    "continueShopping": "Continue browsing"
+  },
+  "inquiry": {
+    "title": "Submit your inquiry",
+    "subtitle": "Our family will reach out personally — usually within a few hours.",
+    "name": "Full name",
+    "namePlaceholder": "Your name",
+    "mobile": "Mobile number",
+    "mobilePlaceholder": "10-digit mobile",
+    "address": "Address (optional)",
+    "addressPlaceholder": "Town / City / Pincode",
+    "message": "Notes (optional)",
+    "messagePlaceholder": "Anything we should know?",
+    "submit": "Submit Inquiry",
+    "submitting": "Sending…",
+    "success": "Thank you. We'll be in touch.",
+    "successDetail": "We've received your inquiry. Our team will WhatsApp or call you shortly.",
+    "openWhatsapp": "Continue on WhatsApp",
+    "backHome": "Return home",
+    "errors": {
+      "name": "Please share your name",
+      "mobile": "Enter a valid 10-digit mobile",
+      "generic": "Couldn't send right now. Please try WhatsApp."
+    }
+  },
+  "offers": {
+    "title": "Offers",
+    "subtitle": "Limited-time gestures from our family.",
+    "ends": "Ends",
+    "off": "off"
+  },
+  "about": {
+    "title": "About Vigneshwara Novelties",
+    "subtitle": "A family of jewelers, gifting since 1998."
+  },
+  "contact": {
+    "title": "Visit our showroom",
+    "subtitle": "Or reach us — we love hearing from you.",
+    "callUs": "Call us",
+    "emailUs": "Email us",
+    "whatsappUs": "Message on WhatsApp",
+    "address": "Address",
+    "hours": "Hours"
+  },
+  "footer": {
+    "tagline": "Crafted with care since 1998.",
+    "explore": "Explore",
+    "support": "Support",
+    "legal": "Legal",
+    "subscribe": "Receive seasonal collections",
+    "subscribeNote": "We'll only message for festivals & new collections.",
+    "rights": "All rights reserved.",
+    "languageEn": "English",
+    "languageTe": "తెలుగు"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "retry": "Try again",
+    "back": "Back",
+    "close": "Close",
+    "more": "More",
+    "less": "Less"
+  }
+}
