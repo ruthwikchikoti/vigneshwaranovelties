@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getAdminUser } from "@/lib/admin/auth";
 import { CMS_PAGE_SLUGS, upsertCmsPage, type CmsPageSlug } from "@/lib/admin/cms";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 const schema = z.object({
   title_en: z.string().trim().min(1, "Title (English) is required").max(180),

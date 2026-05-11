@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getAdminUser } from "@/lib/admin/auth";
 import { setAnnouncement } from "@/lib/admin/settings";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 const schema = z.object({
   text_en: z.string().trim().min(1, "English text is required").max(240, "Keep under 240 characters"),

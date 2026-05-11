@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getAdminUser } from "@/lib/admin/auth";
 import { setHomeEditorial } from "@/lib/admin/settings";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 const schema = z.object({
   image_url: z.string().url("Please pick or upload a valid image"),

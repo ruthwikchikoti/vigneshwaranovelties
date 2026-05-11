@@ -3,7 +3,7 @@ import { inquirySchema } from "@/lib/validations/inquiry";
 import { createServiceClient } from "@/lib/supabase/server";
 import { sendInquiryEmail } from "@/lib/email";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 const isSupabaseConfigured = () =>
   Boolean(

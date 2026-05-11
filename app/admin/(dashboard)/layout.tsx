@@ -2,6 +2,10 @@ import { redirect } from "next/navigation";
 import { AdminBottomNav, AdminSidebar, AdminTopBar } from "@/components/admin/AdminNav";
 import { getAdminUser } from "@/lib/admin/auth";
 
+// Required for Cloudflare Pages — every dynamic route in this segment runs on
+// the Workers edge runtime. Supabase JS uses fetch, so it works fine here.
+export const runtime = "edge";
+
 export default async function DashboardLayout({
   children,
 }: {

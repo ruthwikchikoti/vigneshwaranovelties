@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 const patchSchema = z.object({
   status: z.enum(["new", "contacted", "completed", "spam"]).optional(),

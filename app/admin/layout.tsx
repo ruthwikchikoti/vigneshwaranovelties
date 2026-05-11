@@ -17,6 +17,9 @@ const interTight = localFont({
   weight: "100 900",
 });
 
+// Edge runtime cascades to /admin/login, /admin/logout, and the (dashboard) group.
+export const runtime = "edge";
+
 export const metadata = {
   title: "Admin · Vigneshwara Novelties",
   robots: { index: false, follow: false },

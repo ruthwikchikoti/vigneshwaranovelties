@@ -97,6 +97,10 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
+// Required for Cloudflare Pages — every dynamic public page runs on the
+// Workers edge runtime. Supabase JS and next-intl work fine on edge.
+export const runtime = "edge";
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }

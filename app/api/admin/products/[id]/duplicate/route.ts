@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { slugify } from "@/lib/utils";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 export async function POST(
   _req: Request,

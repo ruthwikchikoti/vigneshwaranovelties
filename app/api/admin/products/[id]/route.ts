@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { productPayloadSchema } from "@/lib/validations/product";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 export async function PATCH(
   req: Request,

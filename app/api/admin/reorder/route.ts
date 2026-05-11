@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 // Offers are ordered by ends_at (they have no sort_order column), so they
 // aren't drag-reorderable. Products are listed with search/filter — drag in a

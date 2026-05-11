@@ -4,7 +4,7 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { productPayloadSchema } from "@/lib/validations/product";
 import { slugify } from "@/lib/utils";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 export async function POST(req: Request) {
   const user = await getAdminUser();

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getAdminUser } from "@/lib/admin/auth";
 import { setHeroSettings, HERO_MIN, HERO_MAX } from "@/lib/admin/settings";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 const schema = z.object({
   rotation_seconds: z.coerce

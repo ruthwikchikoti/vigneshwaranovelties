@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { bannerPayloadSchema } from "@/lib/validations/category";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 function clean<T extends Record<string, unknown>>(input: T): Partial<T> {
   const out: Record<string, unknown> = { ...input };

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getAdminUser } from "@/lib/admin/auth";
 import { translate } from "@/lib/translate";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 const schema = z.object({
   text: z.string().min(1).max(2000),
