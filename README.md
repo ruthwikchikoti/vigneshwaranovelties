@@ -1,6 +1,6 @@
 # Vigneshwara Novelties
 
-A premium digital showroom for Vigneshwara Novelties — jewelry, silver and gift articles. Inquiry-based (no payment gateway). Mobile-first, Modern Heirloom aesthetic.
+A premium digital showroom for Vigneshwara Novelties — jewelry, silver and gift articles.  Inquiry-based (no payment gateway). Mobile-first, Modern Heirloom aesthetic.
 
 **Stack:** Next.js 15 · TypeScript · Tailwind v4 · Supabase · Cloudflare Pages · ImageKit · Resend · next-intl (EN/TE)
 
