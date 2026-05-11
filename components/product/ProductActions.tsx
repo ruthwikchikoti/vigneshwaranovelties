@@ -9,6 +9,8 @@ import { whatsappForProduct } from "@/lib/whatsapp";
 import { localize } from "@/lib/supabase/types";
 import type { Product } from "@/lib/supabase/types";
 import { BuyNowModal } from "./BuyNowModal";
+import { WishlistButton } from "@/components/wishlist/WishlistButton";
+import { ShareProduct } from "./ShareProduct";
 import { cn } from "@/lib/utils";
 
 export function ProductActions({ product }: { product: Product }) {
@@ -60,15 +62,31 @@ export function ProductActions({ product }: { product: Product }) {
           {inCart ? t("added") : t("addToInquiry")}
         </Button>
 
-        <a
-          href={whatsappForProduct({ title, slug: product.slug, price }, locale)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn("btn-base btn-whatsapp w-full")}
-        >
-          <IconWhatsapp size={14} />
-          {t("inquireWhatsapp")}
-        </a>
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <a
+            href={whatsappForProduct({ title, slug: product.slug, price }, locale)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn("btn-base btn-whatsapp w-full")}
+          >
+            <IconWhatsapp size={14} />
+            {t("inquireWhatsapp")}
+          </a>
+          <WishlistButton
+            size="lg"
+            product_id={product.id}
+            snapshot={{
+              title,
+              price,
+              image: primary?.original_url ?? "",
+              slug: product.slug,
+            }}
+          />
+        </div>
+
+        <div className="pt-3 mt-1 border-t border-ink/10">
+          <ShareProduct title={title} slug={product.slug} price={price} locale={locale} />
+        </div>
       </div>
 
       {/* Mobile sticky bottom bar (above the bottom nav) */}

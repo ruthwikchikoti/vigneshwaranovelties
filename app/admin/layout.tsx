@@ -1,16 +1,20 @@
-import { Inter_Tight, Fraunces } from "next/font/google";
+import localFont from "next/font/local";
 import "../globals.css";
 
-const fraunces = Fraunces({
+const fraunces = localFont({
   variable: "--font-fraunces",
-  subsets: ["latin"],
   display: "swap",
+  src: [
+    { path: "../../public/fonts/fraunces-var.woff2", style: "normal", weight: "100 900" },
+    { path: "../../public/fonts/fraunces-italic-var.woff2", style: "italic", weight: "100 900" },
+  ],
 });
 
-const interTight = Inter_Tight({
+const interTight = localFont({
   variable: "--font-inter-tight",
-  subsets: ["latin"],
   display: "swap",
+  src: "../../public/fonts/inter-tight-var.woff2",
+  weight: "100 900",
 });
 
 export const metadata = {

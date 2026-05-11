@@ -4,6 +4,8 @@ import { Container } from "@/components/ui/Container";
 import { ButtonLink } from "@/components/ui/Button";
 import { ikImage } from "@/lib/imagekit";
 import { IconArrowRight } from "@/components/ui/Icons";
+import { getCmsPage } from "@/lib/admin/cms";
+import { pickCmsTitle, pickCmsBody, renderCmsBody } from "@/lib/cms-render";
 
 export default async function AboutPage({
   params,
@@ -13,6 +15,9 @@ export default async function AboutPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("about");
+  const cms = await getCmsPage("about");
+  const cmsTitle = pickCmsTitle(cms, locale as "en" | "te");
+  const cmsBody = pickCmsBody(cms, locale as "en" | "te");
 
   return (
     <>
@@ -24,7 +29,7 @@ export default async function AboutPage({
                 Our story
               </p>
               <h1 className="font-display text-[2.75rem] sm:text-[4rem] lg:text-[5.5rem] text-ink leading-[0.95]">
-                {t("title")}
+                {cmsTitle ?? t("title")}
               </h1>
             </div>
             <div className="lg:col-span-5">
@@ -38,7 +43,10 @@ export default async function AboutPage({
 
       <section className="relative aspect-[16/8] sm:aspect-[16/6]">
         <Image
-          src={ikImage("https://picsum.photos/seed/vn-storefront/2400/1200", { width: 2400 })}
+          src={ikImage(
+            cms?.image_url ?? "https://picsum.photos/seed/vn-storefront/2400/1200",
+            { width: 2400 }
+          )}
           alt=""
           fill
           sizes="100vw"
@@ -49,32 +57,39 @@ export default async function AboutPage({
       <section className="py-20 lg:py-28">
         <Container size="md">
           <div className="prose-vn">
-            <p>
-              In 1998, our grandfather opened a single counter in the village bazaar
-              with one shelf of silver pooja sets and a small ledger. He believed that
-              jewelry and gifting were not transactions — they were the markers of
-              every meaningful moment in a family's life.
-            </p>
-            <p>
-              Twenty-six years later, three generations later, that belief still anchors
-              us. We curate from the most discreet workshops in Hyderabad, Vizag and
-              Chennai — temple jewelry, kundan, antique gold, 925 silver — and we
-              bring them to our village & beyond, in person and now online.
-            </p>
-            <p className="font-display-italic text-[1.5rem] text-ink mt-12 mb-12 leading-snug">
-              "We don't sell pieces. We help you mark moments."
-            </p>
-            <p>
-              Whether you're choosing a chandbali for your daughter's wedding, a
-              silver lamp for the new house, or a small gift for an old friend — our
-              family is on the other side of the WhatsApp message, picking up the call
-              the same way our grandfather did. Personally.
-            </p>
+            {cmsBody ? (
+              renderCmsBody(cmsBody)
+            ) : (
+              <>
+                <p>
+                  Vigneshwara Novelties is a family-run showroom in Cherial, Telangana —
+                  with more than 20 years in the business. One simple idea has stayed
+                  with us all this time: beautiful jewelry and gifts should be friendly to
+                  buy, not intimidating.
+                </p>
+                <p>
+                  We stock <strong>1-gram gold jewelry</strong>, <strong>German silver</strong>{" "}
+                  pieces, <strong>pulse chains</strong>, and a wide range of{" "}
+                  <strong>gift articles</strong> for festivals, weddings, birthdays and
+                  every small moment in between. Everything is hand-picked and priced fairly
+                  — and our family is on the other end of every WhatsApp message.
+                </p>
+                <p className="font-display-italic text-[1.5rem] text-ink mt-12 mb-12 leading-snug">
+                  &quot;Pretty things, simple to buy. That&apos;s it.&quot;
+                </p>
+                <p>
+                  Whether you&apos;re looking for a gift for your sister&apos;s wedding, a chain for
+                  everyday wear, or something special for a festival — come visit our
+                  showroom on Cherial Road, or send us a WhatsApp. We&apos;re open all 7 days,
+                  10 AM to 8 PM.
+                </p>
+              </>
+            )}
           </div>
 
           <div className="mt-12 flex flex-col sm:flex-row gap-3">
-            <ButtonLink href="/category/jewelry" variant="ink">
-              Browse Collections
+            <ButtonLink href="/category/1gram-gold" variant="ink">
+              See Collections
               <IconArrowRight />
             </ButtonLink>
             <ButtonLink href="/contact" variant="ghost">
@@ -86,6 +101,7 @@ export default async function AboutPage({
 
       <style>{`
         .prose-vn p { color: rgba(15,14,12,0.78); font-size: 1.05rem; line-height: 1.8; margin-bottom: 1.5rem; }
+        .prose-vn strong { color: var(--ink); font-weight: 500; }
       `}</style>
     </>
   );

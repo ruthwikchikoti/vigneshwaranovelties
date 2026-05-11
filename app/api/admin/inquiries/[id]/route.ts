@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 
 export const runtime = "nodejs";
@@ -28,12 +28,15 @@ export async function PATCH(
   }
 
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     const { error } = await supabase.from("inquiries").update(updates).eq("id", id);
     if (error) throw error;
   } catch (err) {
     console.error("[admin] inquiry update:", err);
-    return NextResponse.json({ error: "db" }, { status: 500 });
+    return NextResponse.json(
+      { error: "db", message: err instanceof Error ? err.message : String(err) },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ ok: true });

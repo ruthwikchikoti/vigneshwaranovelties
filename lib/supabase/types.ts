@@ -66,6 +66,8 @@ export type Offer = {
   starts_at: string | null;
   ends_at: string | null;
   is_active: boolean;
+  /** When set, the offer's discount_pct applies to every product in this category. */
+  category_id: string | null;
 };
 
 export type Banner = {
@@ -77,6 +79,8 @@ export type Banner = {
   position: "hero" | "promo" | "seasonal";
   sort_order: number;
   is_active: boolean;
+  /** Optional overlay label rendered on the hero image (e.g. "DIWALI EDIT"). */
+  badge_text: string | null;
 };
 
 export type InquiryItem = {
@@ -106,6 +110,8 @@ export type CmsPage = {
   title_te: string | null;
   content_en: string | null;
   content_te: string | null;
+  /** Optional hero image rendered above the body on the public page. */
+  image_url: string | null;
   updated_at: string;
 };
 

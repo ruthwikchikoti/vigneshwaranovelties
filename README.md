@@ -32,7 +32,13 @@ npm run typecheck
 3. In **SQL Editor**, run `supabase/migrations/0001_initial.sql` (creates schema + RLS).
 4. Optionally run `supabase/seed.sql` for demo categories/offers.
 5. In **Storage**, create a public bucket named `product-images`.
-6. In **Authentication → Users**, invite your father with his email — he'll set a password on first sign-in.
+6. **Create the admin user** with a known password (no email link, no rate limits):
+
+   ```bash
+   npm run admin:create -- vigneshwaranovelties@gmail.com YourPassword
+   ```
+
+   The script talks to Supabase's Auth Admin REST API directly. Re-run with a new password to change it later.
 7. Remove `ADMIN_DEV_BYPASS=true` from `.env.local`.
 
 ---
@@ -49,12 +55,12 @@ npm run typecheck
 ## 4. Connect Resend (inquiry emails)
 
 1. Create a free account at https://resend.com (3000 emails/mo free).
-2. Add and verify your sending domain (e.g. `vigneshwaranovelties.com`).
-3. Generate an API key → `RESEND_API_KEY`.
-4. Set `INQUIRY_NOTIFICATION_EMAIL` to the owner's email.
-5. Set `INQUIRY_FROM_EMAIL` to a verified sender on your domain.
+2. Generate an API key → `RESEND_API_KEY`.
+3. Set `INQUIRY_NOTIFICATION_EMAIL` to where you want inquiries delivered (e.g. your gmail).
+4. (Optional) For a custom **FROM** address, verify your own domain at Resend → DNS Records, then set `INQUIRY_FROM_EMAIL=inquiries@yourdomain.com`.
+5. Until you verify a domain, the app sends from Resend's shared sender `Vigneshwara Novelties <onboarding@resend.dev>` automatically. Gmail/Yahoo/Outlook addresses **cannot** be used as the FROM (Resend rejects them).
 
-When a customer submits an inquiry, the owner receives a formatted email with all details + click-to-WhatsApp links.
+When a customer submits an order, the owner receives a formatted email with all details + click-to-WhatsApp links. Replies go straight back to the gmail address.
 
 ---
 

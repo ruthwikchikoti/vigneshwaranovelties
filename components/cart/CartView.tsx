@@ -25,7 +25,7 @@ export function CartView() {
         <h1 className="font-display text-[2.5rem] lg:text-[3.5rem] text-ink leading-tight">
           {t("empty")}
         </h1>
-        <ButtonLink href="/category/jewelry" variant="ink">
+        <ButtonLink href="/category/1gram-gold" variant="ink">
           {t("emptyCta")}
           <IconArrowRight />
         </ButtonLink>
@@ -108,7 +108,7 @@ export function CartView() {
         </ul>
 
         <Link
-          href="/category/jewelry"
+          href="/category/1gram-gold"
           className="inline-flex items-center gap-2 smallcaps text-[0.65rem] text-ink/60 hover:text-ink mt-8"
         >
           ← {t("continueShopping")}

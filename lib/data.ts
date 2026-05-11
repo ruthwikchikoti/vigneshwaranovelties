@@ -89,6 +89,56 @@ export async function getProducts(
   }, fallback);
 }
 
+export async function searchProducts(
+  query: string,
+  options: { limit?: number } = {}
+): Promise<Product[]> {
+  const term = query.trim();
+  if (!term) return [];
+
+  const limit = options.limit ?? 60;
+  const needle = term.toLowerCase();
+
+  // Demo fallback — case-insensitive contains across title/description/tags.
+  const demoMatches = demoProducts.filter((p) => {
+    if (!p.is_active) return false;
+    const hay = [
+      p.title_en,
+      p.title_te,
+      p.description_en,
+      p.description_te,
+      ...(p.tags ?? []),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return hay.includes(needle);
+  }).slice(0, limit);
+
+  return safe(async () => {
+    const supabase = await createClient();
+    // Match against any of the bilingual title/description fields. PostgREST
+    // expects `*term*` for ilike-style contains.
+    const ilikeArg = `%${term.replace(/[%_]/g, "\\$&")}%`;
+    const { data, error } = await supabase
+      .from("products")
+      .select("*, images:product_images(*), category:categories(*)")
+      .eq("is_active", true)
+      .or(
+        [
+          `title_en.ilike.${ilikeArg}`,
+          `title_te.ilike.${ilikeArg}`,
+          `description_en.ilike.${ilikeArg}`,
+          `description_te.ilike.${ilikeArg}`,
+        ].join(",")
+      )
+      .order("sort_order")
+      .limit(limit);
+    if (error) throw error;
+    return (data ?? []) as Product[];
+  }, demoMatches);
+}
+
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   return safe<Product | null>(
     async () => {

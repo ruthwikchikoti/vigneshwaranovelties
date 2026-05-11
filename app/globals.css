@@ -2,21 +2,42 @@
 
 /*
  * Vigneshwara Novelties — Modern Heirloom design tokens.
- * Deep ink, ivory, champagne gold. Editorial, mobile-first.
+ * Palette derived from the brand seal: deep navy ink, cream canvas,
+ * antique gold from the wreath, vermilion from the outer ring.
  */
 
 :root {
-  --ink: #0F0E0C;
-  --ink-soft: #1A1814;
-  --ivory: #F6F1E7;
-  --ivory-warm: #EFE7D5;
-  --champagne: #C9A24A;
-  --champagne-deep: #8C6E2A;
-  --champagne-bright: #E2BE6A;
-  --cognac: #6B3A1F;
-  --mist: #E5DECC;
-  --mist-soft: #F0EAD9;
-  --whisper: rgba(15, 14, 12, 0.06);
+  /* Ink — deep navy from the logo lettering */
+  --ink: #1B2A5B;
+  --ink-soft: #2E3F75;
+
+  /* Canvas — warm cream from the logo background */
+  --ivory: #F6EFE0;
+  --ivory-warm: #FBF6EA;
+
+  /* Gold — antique, from the wreath and dotted border */
+  --champagne: #B8893A;
+  --champagne-deep: #8B6422;
+  --champagne-bright: #ECD9A8;
+
+  /* Vermilion — sale chips, danger; from the outer ring */
+  --vermilion: #B4332A;
+  --vermilion-soft: #F2D9D2;
+
+  /* Peacock — tertiary, used sparingly */
+  --peacock: #1E6F6B;
+
+  /* Dark ink-panel (footer, dramatic surfaces) — deeper than --ink */
+  --ink-panel: #141C3E;
+  --on-ink: #F6EFE0;
+  --on-ink-2: #C9BFAE;
+
+  /* Cognac kept as alias for backward compatibility */
+  --cognac: var(--vermilion);
+
+  --mist: #E3D5B6;
+  --mist-soft: #EFE6D2;
+  --whisper: rgba(27, 42, 91, 0.08);
 
   --background: var(--ivory);
   --foreground: var(--ink);
@@ -37,6 +58,12 @@
   --color-champagne: var(--champagne);
   --color-champagne-deep: var(--champagne-deep);
   --color-champagne-bright: var(--champagne-bright);
+  --color-vermilion: var(--vermilion);
+  --color-vermilion-soft: var(--vermilion-soft);
+  --color-peacock: var(--peacock);
+  --color-ink-panel: var(--ink-panel);
+  --color-on-ink: var(--on-ink);
+  --color-on-ink-2: var(--on-ink-2);
   --color-cognac: var(--cognac);
   --color-mist: var(--mist);
   --color-mist-soft: var(--mist-soft);
@@ -147,7 +174,6 @@ body {
 }
 
 .rise {
-  display: inline-block;
   overflow: hidden;
 }
 

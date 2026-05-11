@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Monogram } from "@/components/brand/Monogram";
+import { Seal } from "@/components/brand/Seal";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { getAdminUser, isAdminConfigured } from "@/lib/admin/auth";
 
@@ -14,7 +14,7 @@ export default async function AdminLoginPage() {
     <div className="min-h-screen grid place-items-center px-6 py-12 bg-ivory">
       <div className="w-full max-w-sm">
         <Link href="/admin" className="flex flex-col items-center gap-3 mb-10">
-          <Monogram size={56} variant="ink" />
+          <Seal size={96} priority />
           <span className="font-display text-[1.25rem] text-ink">Vigneshwara Novelties</span>
           <span className="smallcaps text-[0.55rem] text-champagne-deep">Admin</span>
         </Link>

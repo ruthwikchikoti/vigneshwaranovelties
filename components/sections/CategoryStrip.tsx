@@ -1,13 +1,21 @@
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
-import type { Category } from "@/lib/supabase/types";
+import type { Category, Offer } from "@/lib/supabase/types";
 import { localize } from "@/lib/supabase/types";
 import { ikImage, placeholderImage } from "@/lib/imagekit";
 import { useLocale } from "next-intl";
 import { IconArrowRight } from "@/components/ui/Icons";
+import { liveOffersByCategory } from "@/lib/offers";
 
-export function CategoryStrip({ categories }: { categories: Category[] }) {
+type Props = {
+  categories: Category[];
+  /** Optional — when passed, categories with a live offer get a discount badge. */
+  offers?: Offer[];
+};
+
+export function CategoryStrip({ categories, offers = [] }: Props) {
   const locale = useLocale() as "en" | "te";
+  const offerByCategory = liveOffersByCategory(offers);
 
   return (
     <div className="overflow-x-auto scrollbar-hidden -mx-5 sm:-mx-8 lg:mx-0">
@@ -16,6 +24,7 @@ export function CategoryStrip({ categories }: { categories: Category[] }) {
           const name = localize(cat, locale, "name");
           const description = localize(cat, locale, "description");
           const url = cat.image_url ?? placeholderImage(name);
+          const discountPct = offerByCategory.get(cat.id);
           return (
             <Link
               href={`/category/${cat.slug}`}
@@ -31,6 +40,12 @@ export function CategoryStrip({ categories }: { categories: Category[] }) {
                 priority={i === 0}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
+
+              {discountPct ? (
+                <span className="absolute top-4 left-4 z-[1] bg-vermilion text-on-ink smallcaps text-[0.6rem] tracking-[0.18em] px-2.5 py-1.5 shadow-sm">
+                  {discountPct}% off
+                </span>
+              ) : null}
 
               <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8 text-ivory">
                 <p className="smallcaps text-[0.6rem] text-champagne mb-2">

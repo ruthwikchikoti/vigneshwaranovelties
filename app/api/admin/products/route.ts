@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { productPayloadSchema } from "@/lib/validations/product";
 import { slugify } from "@/lib/utils";
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   product.slug = product.slug || slugify(product.title_en);
 
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     const { data: row, error } = await supabase
       .from("products")
       .insert(product)
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     if (error) throw error;
 
     if (images.length) {
-      await supabase.from("product_images").insert(
+      const { error: imgErr } = await supabase.from("product_images").insert(
         images.map((url, idx) => ({
           product_id: row.id,
           original_url: url,
@@ -40,11 +40,18 @@ export async function POST(req: Request) {
           is_primary: idx === 0,
         }))
       );
+      if (imgErr) throw imgErr;
     }
 
     return NextResponse.json({ ok: true, id: row.id });
   } catch (err) {
     console.error("[admin] product create:", err);
-    return NextResponse.json({ error: "db" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "db",
+        message: err instanceof Error ? err.message : String(err),
+      },
+      { status: 500 }
+    );
   }
 }

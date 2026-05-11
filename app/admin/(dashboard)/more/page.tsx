@@ -1,10 +1,12 @@
 import Link from "next/link";
 
 const items = [
+  { href: "/admin/inquiries", label: "Inquiries", desc: "Customer orders & requests" },
   { href: "/admin/categories", label: "Categories", desc: "Manage collections" },
-  { href: "/admin/banners", label: "Banners", desc: "Hero & promo banners" },
+  { href: "/admin/banners", label: "Banners", desc: "Homepage hero banners" },
   { href: "/admin/offers", label: "Offers", desc: "Active sales & discounts" },
-  { href: "/admin/settings", label: "Settings", desc: "Store info & contacts" },
+  { href: "/admin/cms", label: "Pages", desc: "Edit About, Contact, FAQ & legal" },
+  { href: "/admin/settings", label: "Settings", desc: "Announce bar, hero timing, email" },
 ];
 
 export const metadata = { title: "More · Admin" };
@@ -31,12 +33,26 @@ export default function MorePage() {
           </li>
         ))}
         <li>
+          <Link
+            href="/"
+            target="_blank"
+            rel="noopener"
+            className="block p-5 bg-mist-soft border border-ink/10 hover:border-ink hover:bg-mist transition-colors"
+          >
+            <h2 className="font-display text-[1.3rem] text-ink">
+              Visit site
+              <span className="text-ink/40 text-sm ml-2" aria-hidden="true">↗</span>
+            </h2>
+            <p className="text-xs text-ink/60 mt-1">Open the storefront in a new tab</p>
+          </Link>
+        </li>
+        <li>
           <form action="/admin/logout" method="post">
             <button
               type="submit"
-              className="w-full text-left p-5 bg-ivory border border-cognac/30 hover:border-cognac hover:bg-cognac/5 transition-colors"
+              className="w-full text-left p-5 bg-ivory border border-vermilion/30 hover:border-vermilion hover:bg-vermilion-soft/30 transition-colors"
             >
-              <h2 className="font-display text-[1.3rem] text-cognac">Sign out</h2>
+              <h2 className="font-display text-[1.3rem] text-vermilion">Sign out</h2>
               <p className="text-xs text-ink/60 mt-1">End this admin session</p>
             </button>
           </form>

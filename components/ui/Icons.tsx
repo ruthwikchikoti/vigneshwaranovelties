@@ -57,6 +57,7 @@ export function IconClose({ className, size = 18 }: IconProps) {
 }
 
 export function IconBag({ className, size = 18 }: IconProps) {
+  // Classic shopping cart with two wheels — clearly a "cart", never a trash bin.
   return (
     <svg
       width={size}
@@ -64,14 +65,16 @@ export function IconBag({ className, size = 18 }: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.4"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       aria-hidden
     >
-      <path d="M6 7h12l-1 13a2 2 0 01-2 2H9a2 2 0 01-2-2L6 7z" />
-      <path d="M9 7a3 3 0 016 0" />
+      <path d="M3 4h2.2l1.5 2" />
+      <path d="M6.7 6h14L19 16H8.5L6.7 6z" />
+      <circle cx="9.5" cy="20" r="1.5" />
+      <circle cx="17.5" cy="20" r="1.5" />
     </svg>
   );
 }

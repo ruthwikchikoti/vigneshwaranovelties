@@ -3,6 +3,7 @@ import { Container } from "@/components/ui/Container";
 import { Hero } from "@/components/sections/Hero";
 import { SectionHeader } from "@/components/sections/SectionHeader";
 import { ProductGrid } from "@/components/sections/ProductGrid";
+import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { CategoryStrip } from "@/components/sections/CategoryStrip";
 import { OffersBand } from "@/components/sections/OffersBand";
 import { Editorial } from "@/components/sections/Editorial";
@@ -12,6 +13,8 @@ import {
   getOffers,
   getProducts,
 } from "@/lib/data";
+import { getHeroSettings, getHomeEditorial } from "@/lib/admin/settings";
+import { applyCategoryOffers } from "@/lib/offers";
 
 export default async function HomePage({
   params,
@@ -21,35 +24,61 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [banners, categories, featured, trending, newArrivals, offers] = await Promise.all([
-    getBanners("hero"),
+  const [banners, categories, rawFeatured, rawTrending, rawNewArrivals, offers, heroSettings, homeEditorial] = await Promise.all([
+    getBanners(),
     getCategories(),
     getProducts({ featured: true, limit: 4 }),
     getProducts({ trending: true, limit: 8 }),
     getProducts({ newArrival: true, limit: 4 }),
     getOffers(),
+    getHeroSettings(),
+    getHomeEditorial(),
   ]);
 
+  // Apply any live category-wide offers to product prices.
+  const featured = applyCategoryOffers(rawFeatured, offers);
+  const trending = applyCategoryOffers(rawTrending, offers);
+  const newArrivals = applyCategoryOffers(rawNewArrivals, offers);
+  const homeEditorialImage = homeEditorial.image_url;
+
   const t = await getTranslations("sections");
-  const heroBanner = banners[0];
-  const heroDesktop =
-    heroBanner?.desktop_image_url ?? "https://picsum.photos/seed/vn-hero/2000/1200";
-  const heroMobile =
-    heroBanner?.mobile_image_url ?? "https://picsum.photos/seed/vn-hero/1080/1440";
+
+  // Use all active hero banners — they fade through automatically on the homepage.
+  // Fallback to a single placeholder slide when nothing has been configured yet.
+  const heroSlides = banners
+    .filter((b) => b.is_active && b.desktop_image_url)
+    .map((b) => ({
+      id: b.id,
+      imageDesktop: b.desktop_image_url!,
+      imageMobile: b.mobile_image_url,
+      linkUrl: b.link_url,
+      title: b.title,
+      badgeText: b.badge_text,
+    }));
+  if (heroSlides.length === 0) {
+    heroSlides.push({
+      id: "placeholder",
+      imageDesktop: "https://picsum.photos/seed/vn-hero/2000/1200",
+      imageMobile: "https://picsum.photos/seed/vn-hero/1080/1440",
+      linkUrl: null,
+      title: "",
+      badgeText: null,
+    });
+  }
 
   return (
     <>
-      <Hero imageDesktop={heroDesktop} imageMobile={heroMobile} />
+      <Hero slides={heroSlides} intervalSec={heroSettings.rotation_seconds} />
 
       {/* Featured */}
       <section className="py-20 lg:py-32">
         <Container size="xl">
           <SectionHeader
-            eyebrow="Curated"
+            eyebrow="Hand-picked"
             title={t("featured")}
             subtitle={t("featuredSub")}
-            href="/category/jewelry"
-            hrefLabel="View all"
+            href="/category/1gram-gold"
+            hrefLabel="See all"
           />
           <div className="mt-12 lg:mt-16">
             <ProductGrid products={featured} cols={4} priorityCount={2} />
@@ -64,11 +93,11 @@ export default async function HomePage({
             eyebrow="Showroom"
             title={t("categories")}
             subtitle={t("categoriesSub")}
-            href="/category/jewelry"
+            href="/category/1gram-gold"
             hrefLabel="All collections"
           />
           <div className="mt-12 lg:mt-16">
-            <CategoryStrip categories={categories.slice(0, 6)} />
+            <CategoryStrip categories={categories.slice(0, 6)} offers={offers} />
           </div>
         </Container>
       </section>
@@ -83,19 +112,20 @@ export default async function HomePage({
             href="/offers"
           />
           <div className="mt-12 lg:mt-16">
-            <OffersBand offers={offers} />
+            <OffersBand offers={offers} categories={categories} />
           </div>
         </Container>
       </section>
 
       {/* Editorial moment */}
-      <section className="py-20 lg:py-32 bg-ink text-ivory">
+      <section className="py-20 lg:py-32 bg-ink-panel">
         <Container size="xl">
           <Editorial
-            eyebrow="The atelier"
-            title="Three generations. One steady hand."
-            body="Vigneshwara Novelties began in 1998 as a single counter in our village bazaar. Today our family curates pieces from the most discreet workshops in Hyderabad and Vizag — handing each one to you with the same care, in person or online."
-            imageUrl="https://picsum.photos/seed/vn-atelier/1200/1500"
+            dark
+            eyebrow="Our family shop"
+            title="Pretty things, simple to buy."
+            body="Vigneshwara Novelties is a family-run showroom in Cherial, Telangana — with more than 20 years in the business. We pick 1-gram gold jewelry, German silver, pulse chains and gift articles ourselves, and explain everything in simple words. Visit us, or just message on WhatsApp."
+            imageUrl={homeEditorialImage}
             ctaLabel="Our story"
             ctaHref="/about"
             reverse
@@ -110,8 +140,8 @@ export default async function HomePage({
             eyebrow="Most loved"
             title={t("trending")}
             subtitle={t("trendingSub")}
-            href="/category/jewelry"
-            hrefLabel="View all"
+            href="/category/1gram-gold"
+            hrefLabel="See all"
           />
           <div className="mt-12 lg:mt-16">
             <ProductGrid products={trending} cols={4} />
@@ -126,7 +156,7 @@ export default async function HomePage({
             eyebrow="Just in"
             title={t("newArrivals")}
             subtitle={t("newArrivalsSub")}
-            href="/category/jewelry"
+            href="/category/1gram-gold"
             hrefLabel="See all"
           />
           <div className="mt-12 lg:mt-16">
@@ -134,6 +164,9 @@ export default async function HomePage({
           </div>
         </Container>
       </section>
+
+      {/* For returning visitors */}
+      <RecentlyViewedStrip title="Pick up where you left off" />
     </>
   );
 }

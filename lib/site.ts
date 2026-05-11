@@ -2,11 +2,13 @@ export const site = {
   name: process.env.NEXT_PUBLIC_SITE_NAME ?? "Vigneshwara Novelties",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   description:
-    "An heirloom of jewelry, gift articles & silver. A premium digital showroom by Vigneshwara Novelties.",
+    "1-gram gold jewelry, German silver, gift articles & more — a friendly digital showroom by Vigneshwara Novelties, Cherial.",
   whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "919866777053",
-  ownerPhone: process.env.NEXT_PUBLIC_OWNER_PHONE ?? "+919866777053",
-  ownerEmail: process.env.NEXT_PUBLIC_OWNER_EMAIL ?? "hivexlabsx@gmail.com",
-  established: 1998,
+  ownerPhone: process.env.NEXT_PUBLIC_OWNER_PHONE ?? "+91 98667 77053",
+  ownerPhoneAlt: "+91 98667 77043",
+  ownerEmail: process.env.NEXT_PUBLIC_OWNER_EMAIL ?? "vigneshwaranovelties@gmail.com",
+  // Generic "more than 20 years" instead of a specific founding year.
+  experience: "20+ years in Cherial",
   socials: {
     instagram: "https://instagram.com/vigneshwaranovelties",
     facebook: "https://facebook.com/vigneshwaranovelties",
@@ -14,9 +16,14 @@ export const site = {
   },
   address: {
     line1: "Vigneshwara Novelties",
-    line2: "Main Bazaar Road",
-    city: "Andhra Pradesh",
-    pin: "",
+    line2: "18-88/A, Chikoti Vijay, Cherial Road",
+    line3: "opposite Keerthi Mess",
+    city: "Cherial, Telangana 506223",
+    pin: "506223",
+  },
+  hours: {
+    label: "Open all 7 days",
+    range: "10:00 AM — 8:00 PM",
   },
 } as const;
 

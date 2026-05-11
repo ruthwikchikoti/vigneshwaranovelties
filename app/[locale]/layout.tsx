@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter_Tight, Noto_Serif_Telugu, Noto_Sans_Telugu } from "next/font/google";
+import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -7,38 +7,58 @@ import { routing } from "@/i18n/routing";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { RegisterSW } from "@/components/pwa/RegisterSW";
 import { site } from "@/lib/site";
+import { getAnnouncement } from "@/lib/admin/settings";
 import "../globals.css";
 
-const fraunces = Fraunces({
+// Self-hosted fonts — no Google Fonts dependency.
+const fraunces = localFont({
   variable: "--font-fraunces",
-  subsets: ["latin"],
   display: "swap",
-  axes: ["opsz", "SOFT"],
-  preload: true,
+  src: [
+    {
+      path: "../../public/fonts/fraunces-var.woff2",
+      style: "normal",
+      weight: "100 900",
+    },
+    {
+      path: "../../public/fonts/fraunces-italic-var.woff2",
+      style: "italic",
+      weight: "100 900",
+    },
+  ],
 });
 
-const interTight = Inter_Tight({
+const interTight = localFont({
   variable: "--font-inter-tight",
-  subsets: ["latin"],
   display: "swap",
-  preload: true,
+  src: "../../public/fonts/inter-tight-var.woff2",
+  weight: "100 900",
 });
 
-const notoSerifTe = Noto_Serif_Telugu({
+const notoSerifTe = localFont({
   variable: "--font-noto-serif-te",
-  subsets: ["telugu"],
   display: "swap",
-  weight: ["400", "500", "600", "700"],
-  preload: false,
+  src: [
+    {
+      path: "../../public/fonts/noto-serif-te-400.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/noto-serif-te-600.woff2",
+      weight: "600",
+      style: "normal",
+    },
+  ],
 });
 
-const notoSansTe = Noto_Sans_Telugu({
+const notoSansTe = localFont({
   variable: "--font-noto-sans-te",
-  subsets: ["telugu"],
   display: "swap",
-  weight: ["400", "500", "600"],
-  preload: false,
+  src: "../../public/fonts/noto-sans-te-400.woff2",
+  weight: "100 900",
 });
 
 export const metadata: Metadata = {
@@ -55,14 +75,23 @@ export const metadata: Metadata = {
     siteName: site.name,
   },
   twitter: { card: "summary_large_image" },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: site.name,
+  },
   icons: {
     icon: "/favicon.svg",
-    apple: "/apple-touch-icon.svg",
+    apple: [
+      { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/brand/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#F6F1E7",
+  themeColor: "#F6EFE0",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -83,6 +112,7 @@ export default async function LocaleLayout({
   if (!(routing.locales as readonly string[]).includes(locale)) notFound();
   setRequestLocale(locale);
   const messages = await getMessages();
+  const announcement = await getAnnouncement();
 
   const fontVars = `${fraunces.variable} ${interTight.variable} ${notoSerifTe.variable} ${notoSansTe.variable}`;
 
@@ -90,10 +120,11 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${fontVars} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-ivory text-ink" data-locale={locale}>
         <NextIntlClientProvider messages={messages} locale={locale}>
-          <Header />
-          <main className="flex-1 pt-16 lg:pt-20 pb-[60px] lg:pb-0">{children}</main>
+          <Header announcement={announcement} />
+          <main className="flex-1 pb-[60px] lg:pb-0">{children}</main>
           <Footer />
           <MobileBottomNav />
+          <RegisterSW />
         </NextIntlClientProvider>
         <script
           type="application/ld+json"
@@ -106,7 +137,7 @@ export default async function LocaleLayout({
               url: site.url,
               telephone: site.ownerPhone,
               email: site.ownerEmail,
-              foundingDate: String(site.established),
+              slogan: site.experience,
               address: {
                 "@type": "PostalAddress",
                 streetAddress: site.address.line2,

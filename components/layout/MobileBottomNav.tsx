@@ -42,7 +42,7 @@ export function MobileBottomNav() {
         </li>
         <li>
           <Link
-            href="/category/jewelry"
+            href="/category/1gram-gold"
             className="flex flex-col items-center justify-center gap-0.5 h-full text-ink"
           >
             <IconSearch size={20} />

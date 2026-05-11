@@ -3,16 +3,24 @@
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
-import type { Offer } from "@/lib/supabase/types";
+import type { Offer, Category } from "@/lib/supabase/types";
 import { localize } from "@/lib/supabase/types";
 import { ikImage, placeholderImage } from "@/lib/imagekit";
 import { IconArrowRight } from "@/components/ui/Icons";
 
-export function OffersBand({ offers }: { offers: Offer[] }) {
+type Props = {
+  offers: Offer[];
+  /** Used to resolve a category's slug so we can deep-link to its page. */
+  categories?: Category[];
+};
+
+export function OffersBand({ offers, categories = [] }: Props) {
   const locale = useLocale() as "en" | "te";
   const t = useTranslations("offers");
 
   if (!offers.length) return null;
+
+  const slugById = new Map(categories.map((c) => [c.id, c.slug]));
 
   return (
     <div className="grid lg:grid-cols-2 gap-6 lg:gap-10">
@@ -20,9 +28,11 @@ export function OffersBand({ offers }: { offers: Offer[] }) {
         const title = localize(offer, locale, "title");
         const desc = localize(offer, locale, "description");
         const url = offer.banner_url ?? placeholderImage(title, 1600, 800);
+        const categorySlug = offer.category_id ? slugById.get(offer.category_id) : null;
+        const href = categorySlug ? `/category/${categorySlug}` : "/offers";
         return (
           <Link
-            href="/offers"
+            href={href}
             key={offer.id}
             className="group relative overflow-hidden aspect-[16/9] sm:aspect-[2/1] bg-ink"
           >

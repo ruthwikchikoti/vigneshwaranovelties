@@ -7,7 +7,8 @@ import { SectionHeader } from "@/components/sections/SectionHeader";
 import { CategoryStrip } from "@/components/sections/CategoryStrip";
 import { ikImage, placeholderImage } from "@/lib/imagekit";
 import { localize } from "@/lib/supabase/types";
-import { getCategories, getCategoryBySlug, getProducts } from "@/lib/data";
+import { getCategories, getCategoryBySlug, getProducts, getOffers } from "@/lib/data";
+import { applyCategoryOffers } from "@/lib/offers";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -20,7 +21,11 @@ export default async function CategoryPage({ params }: PageProps) {
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const products = await getProducts({ categoryId: category.id });
+  const [rawProducts, offers] = await Promise.all([
+    getProducts({ categoryId: category.id }),
+    getOffers(),
+  ]);
+  const products = applyCategoryOffers(rawProducts, offers);
   const otherCategories = (await getCategories()).filter((c) => c.id !== category.id);
   const t = await getTranslations("product");
   const localeKey = locale as "en" | "te";
@@ -86,7 +91,7 @@ export default async function CategoryPage({ params }: PageProps) {
               align="left"
             />
             <div className="mt-12">
-              <CategoryStrip categories={otherCategories.slice(0, 6)} />
+              <CategoryStrip categories={otherCategories.slice(0, 6)} offers={offers} />
             </div>
           </Container>
         </section>

@@ -3,13 +3,16 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Container } from "@/components/ui/Container";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductActions } from "@/components/product/ProductActions";
+import { RecentlyViewedTracker } from "@/components/product/RecentlyViewedTracker";
+import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { ProductGrid } from "@/components/sections/ProductGrid";
 import { SectionHeader } from "@/components/sections/SectionHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Link } from "@/i18n/routing";
 import { localize } from "@/lib/supabase/types";
 import { discountPercent, formatINR } from "@/lib/format";
-import { getProductBySlug, getProducts } from "@/lib/data";
+import { getProductBySlug, getProducts, getOffers } from "@/lib/data";
+import { applyCategoryOffer, applyCategoryOffers } from "@/lib/offers";
 import type { Metadata } from "next";
 
 type PageProps = {
@@ -36,8 +39,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProductPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  const product = await getProductBySlug(slug);
-  if (!product) notFound();
+  const [rawProduct, offers] = await Promise.all([
+    getProductBySlug(slug),
+    getOffers(),
+  ]);
+  if (!rawProduct) notFound();
+  const product = applyCategoryOffer(rawProduct, offers);
 
   const t = await getTranslations("product");
   const localeKey = locale as "en" | "te";
@@ -49,11 +56,28 @@ export default async function ProductPage({ params }: PageProps) {
   const discountPct = discountPercent(price, discount);
   const final = discount ?? price;
 
-  const related = await getProducts({
+  // Same-category first; if the category has only this piece (or none), fall
+  // back to a mix of trending + new arrivals so the strip is never empty.
+  let related = await getProducts({
     categoryId: product.category_id ?? undefined,
-    limit: 4,
+    limit: 8,
   });
-  const filteredRelated = related.filter((p) => p.id !== product.id).slice(0, 4);
+  related = related.filter((p) => p.id !== product.id);
+  if (related.length < 4) {
+    const seenIds = new Set([product.id, ...related.map((p) => p.id)]);
+    const [trending, fresh] = await Promise.all([
+      getProducts({ trending: true, limit: 8 }),
+      getProducts({ newArrival: true, limit: 8 }),
+    ]);
+    for (const p of [...trending, ...fresh]) {
+      if (related.length >= 4) break;
+      if (!seenIds.has(p.id)) {
+        related.push(p);
+        seenIds.add(p.id);
+      }
+    }
+  }
+  const filteredRelated = applyCategoryOffers(related.slice(0, 4), offers);
 
   return (
     <>
@@ -165,6 +189,15 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
       </Container>
 
+      {/* Track this view in the client-side store */}
+      <RecentlyViewedTracker
+        product_id={product.id}
+        title={title}
+        price={final}
+        image={product.images?.[0]?.original_url ?? ""}
+        slug={product.slug}
+      />
+
       {filteredRelated.length > 0 && (
         <section className="py-20 lg:py-28 border-t border-ink/10 bg-mist-soft">
           <Container size="xl">
@@ -179,6 +212,8 @@ export default async function ProductPage({ params }: PageProps) {
           </Container>
         </section>
       )}
+
+      <RecentlyViewedStrip excludeId={product.id} />
 
       {/* JSON-LD Product structured data */}
       <script

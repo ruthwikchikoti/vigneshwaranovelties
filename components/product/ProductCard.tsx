@@ -9,6 +9,7 @@ import { localize } from "@/lib/supabase/types";
 import { discountPercent, formatINR } from "@/lib/format";
 import { ikImage, placeholderImage } from "@/lib/imagekit";
 import { useCart } from "@/lib/cart-store";
+import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -86,12 +87,23 @@ export function ProductCard({ product, variant = "default", priority }: Props) {
           ) : null}
         </div>
 
-        {/* Quick add (top-right) */}
+        {/* Wishlist heart — always visible top-right */}
+        <WishlistButton
+          product_id={product.id}
+          snapshot={{
+            title,
+            price: product.discount_price_inr ?? product.price_inr,
+            image: primaryUrl,
+            slug: product.slug,
+          }}
+        />
+
+        {/* Quick add — hover only, sits below the heart */}
         <button
           type="button"
           onClick={handleAdd}
           className={cn(
-            "absolute top-3 right-3 w-8 h-8 grid place-items-center rounded-full transition-all duration-300",
+            "absolute top-14 right-3 w-8 h-8 grid place-items-center rounded-full transition-all duration-300",
             inCart
               ? "bg-champagne text-ink"
               : "bg-ivory/90 text-ink hover:bg-ink hover:text-ivory opacity-0 group-hover:opacity-100"

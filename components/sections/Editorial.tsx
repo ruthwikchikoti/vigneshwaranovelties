@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { Link } from "@/i18n/routing";
 import { ikImage } from "@/lib/imagekit";
 import { ButtonLink } from "@/components/ui/Button";
 import { IconArrowRight } from "@/components/ui/Icons";
@@ -12,6 +11,8 @@ type Props = {
   ctaLabel: string;
   ctaHref: string;
   reverse?: boolean;
+  /** Set true when the parent section uses a dark (ink-panel) background. */
+  dark?: boolean;
 };
 
 export function Editorial({
@@ -22,7 +23,12 @@ export function Editorial({
   ctaLabel,
   ctaHref,
   reverse,
+  dark,
 }: Props) {
+  const titleClass = dark ? "text-on-ink" : "text-ink";
+  const bodyClass = dark ? "text-on-ink-2" : "text-ink/70";
+  const ctaVariant = dark ? "ivory" : "ghost";
+
   return (
     <div className="grid lg:grid-cols-2 gap-10 lg:gap-20 items-center">
       <div className={reverse ? "lg:order-2" : ""}>
@@ -37,17 +43,15 @@ export function Editorial({
         </div>
       </div>
       <div className={reverse ? "lg:order-1 lg:pl-8" : "lg:pr-8"}>
-        <p className="smallcaps text-[0.65rem] text-champagne-deep mb-5">
-          {eyebrow}
-        </p>
-        <h2 className="font-display text-[2.5rem] sm:text-[3rem] lg:text-[3.75rem] leading-[0.95] text-ink mb-6">
+        <p className="smallcaps text-[0.65rem] text-champagne mb-5">{eyebrow}</p>
+        <h2
+          className={`font-display text-[2.5rem] sm:text-[3rem] lg:text-[3.75rem] leading-[0.95] mb-6 ${titleClass}`}
+        >
           {title}
         </h2>
         <div className="divider-gold w-24 mb-6" />
-        <p className="text-ink/70 text-[1.05rem] leading-relaxed max-w-md mb-8">
-          {body}
-        </p>
-        <ButtonLink href={ctaHref} variant="ghost">
+        <p className={`text-[1.05rem] leading-relaxed max-w-md mb-8 ${bodyClass}`}>{body}</p>
+        <ButtonLink href={ctaHref} variant={ctaVariant}>
           {ctaLabel}
           <IconArrowRight />
         </ButtonLink>

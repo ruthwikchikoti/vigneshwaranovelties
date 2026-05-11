@@ -1,0 +1,49 @@
+{
+  "name": "Vigneshwara Novelties",
+  "short_name": "Vigneshwara",
+  "description": "A family-run jewelry and gift articles boutique in Cherial — browse the collection and request a piece.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6EFE0",
+  "theme_color": "#F6EFE0",
+  "icons": [
+    {
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/brand/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Saved pieces",
+      "url": "/wishlist",
+      "description": "Open your saved pieces"
+    },
+    {
+      "name": "Admin",
+      "url": "/admin",
+      "description": "Owner dashboard"
+    }
+  ]
+}

@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { inquirySchema, type InquiryInput } from "@/lib/validations/inquiry";
-import { useCart } from "@/lib/cart-store";
 import { Button } from "@/components/ui/Button";
 import { whatsappGeneral } from "@/lib/whatsapp";
 import { IconWhatsapp } from "@/components/ui/IconWhatsapp";
@@ -23,7 +22,6 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
   const t = useTranslations("inquiry");
   const locale = useLocale() as "en" | "te";
   const router = useRouter();
-  const clearCart = useCart((s) => s.clear);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
@@ -55,7 +53,8 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error ?? "submit");
       }
-      if (source === "cart") clearCart();
+      // Navigate first; the success page mounts a <CartClearer /> which empties
+      // the cart only after CartView has unmounted — no empty-cart flash.
       onSuccess?.();
       router.push("/inquiry/success");
     } catch (err) {

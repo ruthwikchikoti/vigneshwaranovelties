@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Monogram } from "@/components/brand/Monogram";
+import { Seal } from "@/components/brand/Seal";
 
 function svg(d: string) {
   return ({ size = 20 }: { size?: number }) => (
@@ -19,6 +19,7 @@ const BoxIcon = svg("M3 7l9-4 9 4v10l-9 4-9-4V7zM3 7l9 4 9-4M12 11v10");
 const TagIcon = svg("M20 12V6a2 2 0 00-2-2h-6L4 12l8 8 8-8zM7 8h.01");
 const StarIcon = svg("M12 2l2.6 7.5H22l-6.2 4.6L18.2 22 12 17.4 5.8 22l2.4-7.9L2 9.5h7.4z");
 const ImageIcon = svg("M4 4h16v16H4zM4 16l5-5 4 4 5-5 2 2");
+const FileIcon = svg("M6 3h9l5 5v13a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1zM14 3v6h6");
 const GearIcon = svg("M12 8a4 4 0 100 8 4 4 0 000-8zM19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 00-2-1.1l-.4-2.4h-4l-.4 2.4a7 7 0 00-2 1.1l-2.3-.9-2 3.4 2 1.5A7 7 0 005 12a7 7 0 00.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 002 1.1l.4 2.4h4l.4-2.4a7 7 0 002-1.1l2.3.9 2-3.4-2-1.5A7 7 0 0019 12z");
 const GridIcon = svg("M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z");
 
@@ -29,6 +30,7 @@ const links = [
   { href: "/admin/categories", label: "Categories", icon: TagIcon },
   { href: "/admin/offers", label: "Offers", icon: StarIcon },
   { href: "/admin/banners", label: "Banners", icon: ImageIcon },
+  { href: "/admin/cms", label: "Pages", icon: FileIcon },
   { href: "/admin/settings", label: "Settings", icon: GearIcon },
 ];
 
@@ -41,20 +43,30 @@ const mobileLinks = [
 
 export function AdminTopBar({ email }: { email?: string | null }) {
   return (
-    <header className="bg-ink text-ivory border-b border-ivory/10">
+    <header className="bg-ivory-warm text-ink border-b border-ink/10">
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 h-14 lg:h-16 flex items-center justify-between gap-4">
         <Link href="/admin" className="flex items-center gap-2.5">
-          <Monogram size={28} variant="ivory" />
-          <span className="font-display text-[1.05rem] hidden sm:inline">Admin</span>
+          <Seal size={36} />
+          <span className="font-display text-[1.05rem] hidden sm:inline text-ink">Admin</span>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            target="_blank"
+            rel="noopener"
+            className="smallcaps text-[0.6rem] text-ink/70 hover:text-ink inline-flex items-center gap-1.5"
+            title="Open the public storefront in a new tab"
+          >
+            Visit site
+            <span aria-hidden="true">↗</span>
+          </Link>
           {email && (
-            <span className="hidden sm:inline text-xs text-ivory/60 tabular truncate max-w-[200px]">
+            <span className="hidden sm:inline text-xs text-ink/55 tabular truncate max-w-[200px]">
               {email}
             </span>
           )}
           <form action="/admin/logout" method="post">
-            <button type="submit" className="smallcaps text-[0.6rem] text-ivory/70 hover:text-champagne">
+            <button type="submit" className="smallcaps text-[0.6rem] text-ink/70 hover:text-champagne-deep">
               Logout
             </button>
           </form>

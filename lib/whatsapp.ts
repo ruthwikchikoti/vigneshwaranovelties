@@ -32,3 +32,12 @@ export function whatsappGeneral(locale: "en" | "te" = "en"): string {
       : "Hi, I'd like assistance from Vigneshwara Novelties.";
   return whatsappUrl(message);
 }
+
+/** Used on the post-inquiry success page so the customer can ping the store directly. */
+export function whatsappAfterInquiry(locale: "en" | "te" = "en"): string {
+  const message =
+    locale === "te"
+      ? "నమస్కారం, నేను ఇప్పుడే మీ వెబ్‌సైట్ నుండి ఒక inquiry పంపాను. దయచేసి నిర్ధారించండి."
+      : "Hi, I just sent an inquiry through your website — please confirm when you can.";
+  return whatsappUrl(message);
+}

@@ -7,19 +7,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/Button";
 import { ImageUploader } from "./ImageUploader";
+import { BilingualField } from "./BilingualField";
 import { slugify } from "@/lib/utils";
 import type { Category, Product } from "@/lib/supabase/types";
 
 const productSchema = z.object({
-  title_en: z.string().min(2),
+  title_en: z.string().min(2, "Please enter a name (English)"),
   title_te: z.string().optional(),
-  slug: z.string().min(2),
+  slug: z.string().optional().default(""),
   sku: z.string().optional(),
   description_en: z.string().optional(),
   description_te: z.string().optional(),
-  price_inr: z.coerce.number().min(0),
+  price_inr: z.coerce.number().min(0, "Price must be 0 or more"),
   discount_price_inr: z.coerce.number().min(0).optional().or(z.literal("")),
-  category_id: z.string().min(1),
+  category_id: z.string().min(1, "Pick a category"),
   stock_status: z.enum(["in_stock", "made_to_order", "sold_out"]),
   is_featured: z.boolean(),
   is_trending: z.boolean(),
@@ -44,6 +45,13 @@ export function ProductForm({ product, categories }: Props) {
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Derive initial discount % from existing product (if any).
+  const initialDiscountPct =
+    product?.discount_price_inr && product.price_inr
+      ? Math.round(((product.price_inr - product.discount_price_inr) / product.price_inr) * 100)
+      : 0;
+  const [discountPct, setDiscountPct] = useState<number>(initialDiscountPct);
 
   const {
     register,
@@ -74,42 +82,60 @@ export function ProductForm({ product, categories }: Props) {
     },
   });
 
+  // Watched values for bilingual auto-translate.
   const titleEn = watch("title_en");
+  const titleTe = watch("title_te") ?? "";
+  const descEn = watch("description_en") ?? "";
+  const descTe = watch("description_te") ?? "";
 
-  const onSubmit = handleSubmit(async (values) => {
-    setError(null);
-    setSubmitting(true);
-    try {
-      const body = {
-        ...values,
-        slug: values.slug || slugify(values.title_en),
-        tags: values.tags?.split(",").map((t) => t.trim()).filter(Boolean) ?? [],
-        discount_price_inr:
-          values.discount_price_inr === "" ? null : Number(values.discount_price_inr),
-        images: imageUrls,
-      };
+  const onSubmit = handleSubmit(
+    async (values) => {
+      setError(null);
+      setSubmitting(true);
+      try {
+        // Compute the discounted (sale) price from the original price + chosen %.
+        const price = Number(values.price_inr) || 0;
+        const pct = Math.max(0, Math.min(99, Math.floor(discountPct || 0)));
+        const salePrice = pct > 0 && price > 0 ? Math.round(price * (1 - pct / 100)) : null;
 
-      const res = await fetch(
-        product ? `/api/admin/products/${product.id}` : "/api/admin/products",
-        {
-          method: product ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+        const body = {
+          ...values,
+          slug: values.slug || slugify(values.title_en),
+          tags: values.tags?.split(",").map((t) => t.trim()).filter(Boolean) ?? [],
+          discount_price_inr: salePrice,
+          images: imageUrls,
+        };
+
+        const res = await fetch(
+          product ? `/api/admin/products/${product.id}` : "/api/admin/products",
+          {
+            method: product ? "PATCH" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          }
+        );
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message ?? data.error ?? "Could not save");
         }
-      );
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Could not save");
-      }
 
-      router.push("/admin/products");
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save");
-    } finally {
-      setSubmitting(false);
+        router.push("/admin/products");
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not save");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    (errors) => {
+      const first = Object.values(errors)[0];
+      const msg =
+        first && typeof first === "object" && "message" in first
+          ? (first as { message?: string }).message
+          : null;
+      setError(msg || "Please fill in the highlighted fields.");
     }
-  });
+  );
 
   const inputClass =
     "w-full bg-ivory border border-ink/15 focus:border-ink py-2.5 px-3 text-ink outline-none transition-colors text-sm";
@@ -127,70 +153,65 @@ export function ProductForm({ product, categories }: Props) {
       </Section>
 
       {/* Basics */}
-      <Section title="Basics">
-        <div className="grid gap-4">
+      <Section title="Basics" description="Type in English or Telugu — the other side fills in automatically. Edit if needed.">
+        <div className="grid gap-5">
+          <BilingualField
+            label="Title"
+            enValue={titleEn}
+            teValue={titleTe}
+            onChangeEn={(v) => setValue("title_en", v, { shouldDirty: true, shouldValidate: true })}
+            onChangeTe={(v) => setValue("title_te", v, { shouldDirty: true })}
+            onBlurEn={(v) => { if (!watch("slug")) setValue("slug", slugify(v)); }}
+            placeholderEn="Kundan Chandbali Earrings"
+            placeholderTe="కుందన్ చాంద్‌బాలి జుంకాలు"
+            required
+          />
+          {errors.title_en && <FieldError>Title (English) is required</FieldError>}
+          {/* Slug is auto-generated from the English title on save. */}
+          <input type="hidden" {...register("slug")} />
           <div>
-            <label className={labelClass}>Title (English)</label>
+            <label className={labelClass}>Item code (optional)</label>
             <input
-              {...register("title_en")}
+              {...register("sku")}
               className={inputClass}
-              onBlur={(e) => {
-                if (!watch("slug")) setValue("slug", slugify(e.target.value));
-              }}
-              placeholder="Kundan Chandbali Earrings"
+              placeholder="e.g. VN-001"
             />
-            {errors.title_en && <FieldError>Required</FieldError>}
-          </div>
-          <div>
-            <label className={labelClass}>Title (Telugu, optional)</label>
-            <input
-              {...register("title_te")}
-              className={inputClass}
-              placeholder="కుందన్ చాంద్‌బాలి జుంకాలు"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Slug (URL)</label>
-              <input
-                {...register("slug")}
-                className={inputClass}
-                placeholder={titleEn ? slugify(titleEn) : "auto"}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>SKU</label>
-              <input
-                {...register("sku")}
-                className={inputClass}
-                placeholder="VN-J-001"
-              />
-            </div>
           </div>
         </div>
       </Section>
 
       {/* Pricing */}
-      <Section title="Pricing">
+      <Section
+        title="Pricing"
+        description="Enter the original price. To put it on sale, enter a discount % — we'll calculate the sale price for you."
+      >
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Price (₹)</label>
+            <label className={labelClass}>Original price (₹)</label>
             <input
               type="number"
               {...register("price_inr")}
               className={inputClass}
               inputMode="numeric"
+              placeholder="e.g. 1000"
               required
             />
           </div>
           <div>
-            <label className={labelClass}>Discount price (optional)</label>
+            <label className={labelClass}>Discount % — optional</label>
             <input
               type="number"
-              {...register("discount_price_inr")}
+              value={discountPct || ""}
+              onChange={(e) => setDiscountPct(Number(e.target.value) || 0)}
               className={inputClass}
               inputMode="numeric"
-              placeholder="—"
+              placeholder="e.g. 12"
+              min={0}
+              max={99}
+            />
+            <PriceHint
+              price={Number(watch("price_inr")) || 0}
+              pct={discountPct}
             />
           </div>
         </div>
@@ -229,23 +250,17 @@ export function ProductForm({ product, categories }: Props) {
       </Section>
 
       {/* Description */}
-      <Section title="Description">
-        <div className="grid gap-4">
-          <div>
-            <label className={labelClass}>English</label>
-            <textarea
-              {...register("description_en")}
-              className={`${inputClass} min-h-[100px] resize-y`}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Telugu (optional)</label>
-            <textarea
-              {...register("description_te")}
-              className={`${inputClass} min-h-[100px] resize-y`}
-            />
-          </div>
-        </div>
+      <Section title="Description" description="Same here — write in either language and we'll fill the other.">
+        <BilingualField
+          label="Description"
+          type="textarea"
+          enValue={descEn}
+          teValue={descTe}
+          onChangeEn={(v) => setValue("description_en", v, { shouldDirty: true })}
+          onChangeTe={(v) => setValue("description_te", v, { shouldDirty: true })}
+          placeholderEn="A handcrafted pair, finished in our Hyderabad atelier…"
+          placeholderTe="హైదరాబాద్ ఆటెలియర్‌లో రూపొందించిన చేతిపని జత…"
+        />
       </Section>
 
       {/* Toggles */}
@@ -298,6 +313,30 @@ function Section({
 
 function FieldError({ children }: { children: React.ReactNode }) {
   return <p className="text-cognac text-xs mt-1">{children}</p>;
+}
+
+function PriceHint({ price, pct }: { price: number; pct: number }) {
+  if (!pct || pct <= 0) {
+    return <p className="text-xs text-ink/40 mt-1.5">Leave blank if there's no sale.</p>;
+  }
+  if (pct >= 100) {
+    return (
+      <p className="text-xs text-cognac mt-1.5">
+        Discount must be less than 100%.
+      </p>
+    );
+  }
+  if (!price) {
+    return <p className="text-xs text-ink/40 mt-1.5">Enter the original price first.</p>;
+  }
+  const salePrice = Math.round(price * (1 - pct / 100));
+  const saved = price - salePrice;
+  return (
+    <p className="text-xs text-champagne-deep mt-1.5">
+      Sale price: <strong>₹{salePrice.toLocaleString("en-IN")}</strong> · saves ₹
+      {saved.toLocaleString("en-IN")}
+    </p>
+  );
 }
 
 const Toggle = function Toggle({
