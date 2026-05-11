@@ -41,18 +41,17 @@ export default async function AboutPage({
         </Container>
       </section>
 
-      <section className="relative aspect-[16/8] sm:aspect-[16/6]">
-        <Image
-          src={ikImage(
-            cms?.image_url ?? "https://picsum.photos/seed/vn-storefront/2400/1200",
-            { width: 2400 }
-          )}
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover"
-        />
-      </section>
+      {cms?.image_url ? (
+        <section className="relative aspect-[16/8] sm:aspect-[16/6]">
+          <Image
+            src={ikImage(cms.image_url, { width: 2400 })}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+        </section>
+      ) : null}
 
       <section className="py-20 lg:py-28">
         <Container size="md">

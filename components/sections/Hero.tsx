@@ -25,11 +25,17 @@ type HeroProps = {
   slides: HeroSlide[];
   /** Seconds per slide. Default 6s — slow + restrained. */
   intervalSec?: number;
+  /** Primary “browse” CTA when you have a default collection (e.g. first category slug). */
+  primaryBrowseHref?: string;
 };
 
 const FADE_MS = 700; // matches the slow ease-out-quart timing in the design system
 
-export function Hero({ slides, intervalSec = 6 }: HeroProps) {
+export function Hero({
+  slides,
+  intervalSec = 6,
+  primaryBrowseHref = "/search",
+}: HeroProps) {
   const t = useTranslations("hero");
   const locale = useLocale() as "en" | "te";
 
@@ -80,7 +86,7 @@ export function Hero({ slides, intervalSec = 6 }: HeroProps) {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 sm:items-center">
-          <ButtonLink href="/category/1gram-gold" variant="ink" className="group">
+          <ButtonLink href={primaryBrowseHref} variant="ink" className="group">
             {t("ctaPrimary")}
             <IconArrowRight className="transition-transform group-hover:translate-x-1" />
           </ButtonLink>

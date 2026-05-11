@@ -124,7 +124,7 @@ export type HomeEditorial = {
 };
 
 const DEFAULT_HOME_EDITORIAL: HomeEditorial = {
-  image_url: "https://picsum.photos/seed/vn-shop/1200/1500",
+  image_url: "",
 };
 
 export async function getHomeEditorial(): Promise<HomeEditorial> {

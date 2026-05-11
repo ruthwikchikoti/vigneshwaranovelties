@@ -1,6 +1,5 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/server";
-import { demoProducts, demoCategories } from "@/lib/demo-data";
 import type { Inquiry, Product, Category } from "@/lib/supabase/types";
 
 const isConfigured = () =>
@@ -65,7 +64,7 @@ export async function adminGetInquiryStats() {
 }
 
 export async function adminGetProducts(): Promise<Product[]> {
-  if (!isConfigured()) return demoProducts;
+  if (!isConfigured()) return [];
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("products")
@@ -79,7 +78,7 @@ export async function adminGetProducts(): Promise<Product[]> {
 }
 
 export async function adminGetCategories(): Promise<Category[]> {
-  if (!isConfigured()) return demoCategories;
+  if (!isConfigured()) return [];
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("categories")

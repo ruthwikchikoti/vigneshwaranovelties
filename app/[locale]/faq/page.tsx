@@ -2,7 +2,6 @@ import { setRequestLocale } from "next-intl/server";
 import { Container } from "@/components/ui/Container";
 import { getCmsPage } from "@/lib/admin/cms";
 import { pickCmsTitle, pickCmsBody, parseFaq, renderCmsBody } from "@/lib/cms-render";
-import { getDefaultFaqText, DEFAULT_FAQ_TITLE } from "@/lib/default-faq";
 import { site } from "@/lib/site";
 
 export const metadata = { title: "FAQ" };
@@ -19,19 +18,26 @@ export default async function FaqPage({
   const cmsTitle = pickCmsTitle(cms, localeKey);
   const cmsBody = pickCmsBody(cms, localeKey);
 
-  // CMS row wins; otherwise fall back to the bilingual default content.
-  const bodyText = cmsBody || getDefaultFaqText(localeKey);
+  const bodyText = cmsBody ?? "";
   const parsed = parseFaq(bodyText);
   const items = parsed.length > 0 ? parsed : null;
+  const fallbackTitle = localeKey === "te" ? "తరచుగా అడిగే ప్రశ్నలు" : "FAQ";
+  const hasContent = Boolean(items || bodyText.trim());
 
   return (
     <Container size="md" className="py-16 lg:py-24">
       <p className="smallcaps text-[0.65rem] text-champagne-deep mb-4">Help</p>
       <h1 className="font-display text-[2.5rem] lg:text-[3.75rem] text-ink leading-tight mb-10">
-        {cmsTitle ?? DEFAULT_FAQ_TITLE[localeKey]}
+        {cmsTitle ?? fallbackTitle}
       </h1>
 
-      {items ? (
+      {!hasContent ? (
+        <p className="text-ink/65 text-[1.02rem] leading-relaxed max-w-lg">
+          {localeKey === "te"
+            ? "ఇంకా ప్రశ్నలు జోడించబడలేదు. త్వరలో తిరిగి చూడండి లేదా వాట్సాప్‌లో మమ్మల్ని సంప్రదించండి."
+            : "No questions have been published yet. Check back soon, or message us on WhatsApp below."}
+        </p>
+      ) : items ? (
         <ul className="flex flex-col divide-y divide-ink/10 border-y border-ink/10">
           {items.map((it, i) => (
             <li key={i}>

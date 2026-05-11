@@ -1,11 +1,5 @@
 import "server-only";
 import { createClient } from "./supabase/server";
-import {
-  demoBanners,
-  demoCategories,
-  demoOffers,
-  demoProducts,
-} from "./demo-data";
 import type { Banner, Category, Offer, Product } from "./supabase/types";
 
 function isSupabaseConfigured(): boolean {
@@ -18,10 +12,15 @@ async function safe<T>(real: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await real();
   } catch (err) {
-    console.warn("[data] Supabase fetch failed, using demo data:", err);
+    console.warn("[data] Supabase fetch failed, returning empty:", err);
     return fallback;
   }
 }
+
+const emptyProducts: Product[] = [];
+const emptyCategories: Category[] = [];
+const emptyOffers: Offer[] = [];
+const emptyBanners: Banner[] = [];
 
 export async function getCategories(): Promise<Category[]> {
   return safe(async () => {
@@ -33,7 +32,7 @@ export async function getCategories(): Promise<Category[]> {
       .order("sort_order");
     if (error) throw error;
     return (data ?? []) as Category[];
-  }, demoCategories);
+  }, emptyCategories);
 }
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
@@ -49,7 +48,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
       if (error) throw error;
       return data as Category;
     },
-    demoCategories.find((c) => c.slug === slug) ?? null
+    null
   );
 }
 
@@ -62,15 +61,6 @@ export async function getProducts(
     limit?: number;
   } = {}
 ): Promise<Product[]> {
-  const filtered = demoProducts.filter((p) => {
-    if (options.categoryId && p.category_id !== options.categoryId) return false;
-    if (options.featured && !p.is_featured) return false;
-    if (options.trending && !p.is_trending) return false;
-    if (options.newArrival && !p.is_new_arrival) return false;
-    return p.is_active;
-  });
-  const fallback = options.limit ? filtered.slice(0, options.limit) : filtered;
-
   return safe(async () => {
     const supabase = await createClient();
     let query = supabase
@@ -86,7 +76,7 @@ export async function getProducts(
     const { data, error } = await query;
     if (error) throw error;
     return (data ?? []) as Product[];
-  }, fallback);
+  }, emptyProducts);
 }
 
 export async function searchProducts(
@@ -97,28 +87,9 @@ export async function searchProducts(
   if (!term) return [];
 
   const limit = options.limit ?? 60;
-  const needle = term.toLowerCase();
-
-  // Demo fallback — case-insensitive contains across title/description/tags.
-  const demoMatches = demoProducts.filter((p) => {
-    if (!p.is_active) return false;
-    const hay = [
-      p.title_en,
-      p.title_te,
-      p.description_en,
-      p.description_te,
-      ...(p.tags ?? []),
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    return hay.includes(needle);
-  }).slice(0, limit);
 
   return safe(async () => {
     const supabase = await createClient();
-    // Match against any of the bilingual title/description fields. PostgREST
-    // expects `*term*` for ilike-style contains.
     const ilikeArg = `%${term.replace(/[%_]/g, "\\$&")}%`;
     const { data, error } = await supabase
       .from("products")
@@ -136,7 +107,7 @@ export async function searchProducts(
       .limit(limit);
     if (error) throw error;
     return (data ?? []) as Product[];
-  }, demoMatches);
+  }, emptyProducts);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -152,7 +123,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
       if (error) throw error;
       return data as Product;
     },
-    demoProducts.find((p) => p.slug === slug) ?? null
+    null
   );
 }
 
@@ -165,13 +136,10 @@ export async function getOffers(): Promise<Offer[]> {
       .eq("is_active", true);
     if (error) throw error;
     return (data ?? []) as Offer[];
-  }, demoOffers);
+  }, emptyOffers);
 }
 
 export async function getBanners(position?: Banner["position"]): Promise<Banner[]> {
-  const filtered = position
-    ? demoBanners.filter((b) => b.position === position && b.is_active)
-    : demoBanners.filter((b) => b.is_active);
   return safe(async () => {
     const supabase = await createClient();
     let query = supabase.from("banners").select("*").eq("is_active", true);
@@ -180,5 +148,5 @@ export async function getBanners(position?: Banner["position"]): Promise<Banner[
     const { data, error } = await query;
     if (error) throw error;
     return (data ?? []) as Banner[];
-  }, filtered);
+  }, emptyBanners);
 }

@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { CmsPageForm } from "@/components/admin/CmsPageForm";
 import { AdminBackLink } from "@/components/admin/AdminBackLink";
 import { CMS_PAGE_SLUGS, getCmsPage, type CmsPageSlug } from "@/lib/admin/cms";
-import { getDefaultFaqText, DEFAULT_FAQ_TITLE } from "@/lib/default-faq";
 import type { CmsPage } from "@/lib/supabase/types";
 
 const SLUG_TITLES: Record<CmsPageSlug, string> = {
@@ -20,10 +19,10 @@ function buildDefaultFaqDraft(): CmsPage {
   return {
     id: "_draft",
     slug: "faq",
-    title_en: DEFAULT_FAQ_TITLE.en,
-    title_te: DEFAULT_FAQ_TITLE.te,
-    content_en: getDefaultFaqText("en"),
-    content_te: getDefaultFaqText("te"),
+    title_en: "",
+    title_te: "",
+    content_en: "",
+    content_te: "",
     image_url: null,
     updated_at: new Date(0).toISOString(),
   };
@@ -51,8 +50,6 @@ export default async function EditCmsPage({
   if (!isCmsSlug(slug)) notFound();
 
   const dbRow = await getCmsPage(slug);
-  // When the editor opens for the first time, prefill from built-in defaults so
-  // the owner can edit the existing questions instead of seeing a blank textarea.
   const page: CmsPage | null =
     dbRow ?? (slug === "faq" ? buildDefaultFaqDraft() : null);
   const label = SLUG_TITLES[slug];

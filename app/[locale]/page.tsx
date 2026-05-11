@@ -42,9 +42,10 @@ export default async function HomePage({
   const homeEditorialImage = homeEditorial.image_url;
 
   const t = await getTranslations("sections");
+  const collectionsHref = categories[0]?.slug
+    ? `/category/${categories[0].slug}`
+    : "/search";
 
-  // Use all active hero banners — they fade through automatically on the homepage.
-  // Fallback to a single placeholder slide when nothing has been configured yet.
   const heroSlides = banners
     .filter((b) => b.is_active && b.desktop_image_url)
     .map((b) => ({
@@ -55,20 +56,14 @@ export default async function HomePage({
       title: b.title,
       badgeText: b.badge_text,
     }));
-  if (heroSlides.length === 0) {
-    heroSlides.push({
-      id: "placeholder",
-      imageDesktop: "https://picsum.photos/seed/vn-hero/2000/1200",
-      imageMobile: "https://picsum.photos/seed/vn-hero/1080/1440",
-      linkUrl: null,
-      title: "",
-      badgeText: null,
-    });
-  }
 
   return (
     <>
-      <Hero slides={heroSlides} intervalSec={heroSettings.rotation_seconds} />
+      <Hero
+        slides={heroSlides}
+        intervalSec={heroSettings.rotation_seconds}
+        primaryBrowseHref={collectionsHref}
+      />
 
       {/* Featured */}
       <section className="py-20 lg:py-32">
@@ -77,7 +72,7 @@ export default async function HomePage({
             eyebrow="Hand-picked"
             title={t("featured")}
             subtitle={t("featuredSub")}
-            href="/category/1gram-gold"
+            href={collectionsHref}
             hrefLabel="See all"
           />
           <div className="mt-12 lg:mt-16">
@@ -93,7 +88,7 @@ export default async function HomePage({
             eyebrow="Showroom"
             title={t("categories")}
             subtitle={t("categoriesSub")}
-            href="/category/1gram-gold"
+            href={collectionsHref}
             hrefLabel="All collections"
           />
           <div className="mt-12 lg:mt-16">
@@ -140,7 +135,7 @@ export default async function HomePage({
             eyebrow="Most loved"
             title={t("trending")}
             subtitle={t("trendingSub")}
-            href="/category/1gram-gold"
+            href={collectionsHref}
             hrefLabel="See all"
           />
           <div className="mt-12 lg:mt-16">
@@ -156,7 +151,7 @@ export default async function HomePage({
             eyebrow="Just in"
             title={t("newArrivals")}
             subtitle={t("newArrivalsSub")}
-            href="/category/1gram-gold"
+            href={collectionsHref}
             hrefLabel="See all"
           />
           <div className="mt-12 lg:mt-16">

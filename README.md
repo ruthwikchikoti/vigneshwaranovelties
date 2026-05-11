@@ -13,7 +13,7 @@ npm install
 npm run dev    # http://localhost:3000
 ```
 
-The site renders with realistic demo data even before Supabase is configured. Admin panel renders behind a dev-bypass (`ADMIN_DEV_BYPASS=true` in `.env.local`).
+Catalog and CMS content come from Supabase once env vars are set; without them the storefront shows empty sections. Admin panel renders behind a dev-bypass (`ADMIN_DEV_BYPASS=true` in `.env.local`).
 
 ### Type-check
 ```bash
@@ -30,7 +30,7 @@ npm run typecheck
    - `anon` public key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server-only)
 3. In **SQL Editor**, run `supabase/migrations/0001_initial.sql` (creates schema + RLS).
-4. Optionally run `supabase/seed.sql` for demo categories/offers.
+4. `supabase/seed.sql` is optional (empty by default); add categories and products from `/admin` instead.
 5. In **Storage**, create a public bucket named `product-images`.
 6. **Create the admin user** with a known password (no email link, no rate limits):
 
@@ -112,7 +112,7 @@ lib/
   supabase/             # Server + browser clients
   admin/                # Auth + admin queries
   validations/          # Zod schemas
-  data.ts               # Public data fetchers (Supabase + demo fallback)
+  data.ts               # Public data fetchers (Supabase; empty when unset or on error)
   cart-store.ts         # Zustand inquiry cart (localStorage-persisted)
   whatsapp.ts           # Click-to-chat URL builder
   imagekit.ts           # ImageKit URL helper
@@ -122,7 +122,7 @@ i18n/
 messages/               # en.json / te.json
 supabase/
   migrations/           # SQL schema + RLS
-  seed.sql              # Demo data
+  seed.sql              # Optional SQL hooks (empty by default)
 public/                 # favicons, robots.txt
 ```
 

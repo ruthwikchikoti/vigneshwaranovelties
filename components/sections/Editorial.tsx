@@ -7,7 +7,8 @@ type Props = {
   eyebrow: string;
   title: string;
   body: string;
-  imageUrl: string;
+  /** When empty, the image panel shows a neutral block (configure in Admin → Settings). */
+  imageUrl?: string | null;
   ctaLabel: string;
   ctaHref: string;
   reverse?: boolean;
@@ -28,18 +29,26 @@ export function Editorial({
   const titleClass = dark ? "text-on-ink" : "text-ink";
   const bodyClass = dark ? "text-on-ink-2" : "text-ink/70";
   const ctaVariant = dark ? "ivory" : "ghost";
+  const showImage = Boolean(imageUrl?.trim());
 
   return (
     <div className="grid lg:grid-cols-2 gap-10 lg:gap-20 items-center">
       <div className={reverse ? "lg:order-2" : ""}>
         <div className="relative aspect-[4/5] overflow-hidden bg-mist">
-          <Image
-            src={ikImage(imageUrl, { width: 1200, format: "auto", quality: 88 })}
-            alt=""
-            fill
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="object-cover"
-          />
+          {showImage ? (
+            <Image
+              src={ikImage(imageUrl, { width: 1200, format: "auto", quality: 88 })}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
+            />
+          ) : (
+            <div
+              className="absolute inset-0 bg-gradient-to-br from-mist via-mist-soft to-mist"
+              aria-hidden
+            />
+          )}
         </div>
       </div>
       <div className={reverse ? "lg:order-1 lg:pl-8" : "lg:pr-8"}>
