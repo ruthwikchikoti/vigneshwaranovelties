@@ -99,11 +99,11 @@ export const viewport: Viewport = {
 
 // Required for Cloudflare Pages — every dynamic public page runs on the
 // Workers edge runtime. Supabase JS and next-intl work fine on edge.
+//
+// Note: `generateStaticParams` is intentionally NOT exported here because
+// Next.js disallows combining it with edge runtime. Locale routing is still
+// handled correctly by the next-intl middleware.
 export const runtime = "edge";
-
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
 
 export default async function LocaleLayout({
   children,

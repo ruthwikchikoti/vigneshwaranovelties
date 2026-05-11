@@ -3,6 +3,8 @@ import { getProducts, getCategories } from "@/lib/data";
 import { site } from "@/lib/site";
 import { routing } from "@/i18n/routing";
 
+export const runtime = "edge";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, categories] = await Promise.all([getProducts(), getCategories()]);
   const base = site.url;

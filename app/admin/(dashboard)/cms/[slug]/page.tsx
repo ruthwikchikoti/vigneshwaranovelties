@@ -29,11 +29,8 @@ function buildDefaultFaqDraft(): CmsPage {
   };
 }
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return CMS_PAGE_SLUGS.map((slug) => ({ slug }));
-}
+// Edge runtime (inherited from the admin layout) disallows generateStaticParams.
+// Slug validation below handles unknown values with notFound().
 
 export async function generateMetadata({
   params,
