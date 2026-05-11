@@ -23,6 +23,9 @@ export const runtime = "edge";
 export const metadata = {
   title: "Admin · Vigneshwara Novelties",
   robots: { index: false, follow: false },
+  icons: {
+    icon: [{ url: "/brand/seal.png", type: "image/png" }],
+  },
 };
 
 export default function AdminRootLayout({
