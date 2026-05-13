@@ -10,7 +10,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = site.url;
   const now = new Date();
 
-  const staticPaths = ["", "/offers", "/cart", "/about", "/contact", "/terms", "/privacy"];
+  const staticPaths = [
+    "",
+    "/shop",
+    "/search",
+    "/offers",
+    "/cart",
+    "/about",
+    "/contact",
+    "/faq",
+    "/terms",
+    "/privacy",
+  ];
   const productPaths = products.map((p) => `/product/${p.slug}`);
   const categoryPaths = categories.map((c) => `/category/${c.slug}`);
   const allPaths = [...staticPaths, ...productPaths, ...categoryPaths];

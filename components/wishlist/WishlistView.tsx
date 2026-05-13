@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useWishlist } from "@/lib/wishlist-store";
 import { useCart } from "@/lib/cart-store";
@@ -11,6 +12,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { IconArrowRight } from "@/components/ui/Icons";
 
 export function WishlistView() {
+  const tNav = useTranslations("nav");
   const items = useWishlist((s) => s.items);
   const remove = useWishlist((s) => s.remove);
   const addToCart = useCart((s) => s.add);
@@ -35,8 +37,8 @@ export function WishlistView() {
         <p className="text-ink/60 text-sm">
           Tap the heart on any piece to save it here for later.
         </p>
-        <ButtonLink href="/category/1gram-gold" variant="ink">
-          Browse collections
+        <ButtonLink href="/shop" variant="ink">
+          {tNav("shopAll")}
           <IconArrowRight />
         </ButtonLink>
       </div>

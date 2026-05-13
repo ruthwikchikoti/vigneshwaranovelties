@@ -111,6 +111,7 @@ export function Header({ announcement }: HeaderProps = {}) {
   // Three links each side, mirroring the design system header (Jewelry / Silver /
   // Watches  ◇  Gift Articles / Festive Edit / About).
   const leftLinks = [
+    { href: "/shop", label: t("shopAll") },
     { href: "/category/1gram-gold", label: t("collections") },
     { href: "/category/german-silver", label: "Silver" },
     { href: "/category/gift-articles", label: "Gifting" },
@@ -168,7 +169,7 @@ export function Header({ announcement }: HeaderProps = {}) {
               <IconMenu />
             </button>
 
-            <nav className="hidden lg:flex items-center gap-7 justify-self-start">
+            <nav className="hidden lg:flex items-center gap-5 xl:gap-7 justify-self-start">
               {leftLinks.map((l) => (
                 <Link
                   key={l.href}

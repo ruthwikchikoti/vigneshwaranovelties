@@ -42,11 +42,14 @@ export function MobileBottomNav() {
         </li>
         <li>
           <Link
-            href="/category/1gram-gold"
-            className="flex flex-col items-center justify-center gap-0.5 h-full text-ink"
+            href="/shop"
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 h-full text-ink transition-colors",
+              isActive("/shop") ? "text-champagne-deep" : "text-ink"
+            )}
           >
             <IconSearch size={20} />
-            <span className="text-[0.55rem] smallcaps tracking-[0.15em]">
+            <span className="text-[0.55rem] smallcaps tracking-[0.15em] leading-tight text-center px-0.5">
               {t("shop")}
             </span>
           </Link>

@@ -52,6 +52,37 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
   );
 }
 
+/** Default page size for the full-catalog /shop route. */
+export const SHOP_PAGE_SIZE = 24;
+
+export async function getAllProductsPaginated(options: {
+  page: number;
+  pageSize?: number;
+}): Promise<{ products: Product[]; total: number }> {
+  const pageSize = options.pageSize ?? SHOP_PAGE_SIZE;
+  const page = Math.max(1, Math.floor(options.page));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  return safe(
+    async () => {
+      const supabase = await createClient();
+      const { data, error, count } = await supabase
+        .from("products")
+        .select("*, images:product_images(*), category:categories(*)", { count: "exact" })
+        .eq("is_active", true)
+        .order("sort_order")
+        .range(from, to);
+      if (error) throw error;
+      return {
+        products: (data ?? []) as Product[],
+        total: count ?? 0,
+      };
+    },
+    { products: [], total: 0 }
+  );
+}
+
 export async function getProducts(
   options: {
     categoryId?: string;

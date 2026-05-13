@@ -7,6 +7,7 @@
   "nav": {
     "home": "Home",
     "shop": "Shop",
+    "shopAll": "Browse all",
     "collections": "Collections",
     "offers": "Offers",
     "about": "About",
@@ -15,16 +16,32 @@
     "cart": "Cart",
     "whatsapp": "WhatsApp"
   },
+  "shop": {
+    "metaTitle": "Browse all",
+    "metaDescription": "Browse every piece in our online catalogue — jewelry, silver, and gifts from Vigneshwara Novelties.",
+    "eyebrow": "Catalogue",
+    "title": "Browse all",
+    "subtitle": "Everything we list online. Scroll the grid, use Search for a keyword, or open a collection from the menu.",
+    "emptyTitle": "Catalogue coming soon",
+    "emptyBody": "We are still adding pieces to the website. WhatsApp us and we can share photos and availability from the showroom.",
+    "emptyCta": "WhatsApp us",
+    "countLabel": "{count} pieces",
+    "prev": "Previous",
+    "next": "Next",
+    "pageOf": "Page {current} of {total}"
+  },
   "hero": {
     "eyebrow": "Cherial · Telangana · 20+ years",
     "lineOne": "Beautiful pieces,",
     "lineTwo": "simple to",
     "lineThree": "take home.",
     "subline": "1-gram gold jewelry, German silver, pulse chains and gift articles — picked by our family for yours.",
-    "ctaPrimary": "See Collections",
+    "ctaPrimary": "Browse all",
     "ctaSecondary": "Chat on WhatsApp"
   },
   "sections": {
+    "seeAll": "See all",
+    "allPieces": "Browse all",
     "featured": "Featured",
     "featuredSub": "Pieces our customers love",
     "trending": "Trending Now",

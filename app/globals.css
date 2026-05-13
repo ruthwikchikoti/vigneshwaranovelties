@@ -105,15 +105,18 @@ body {
 .font-display {
   font-family: var(--font-display);
   font-optical-sizing: auto;
-  font-variation-settings: "opsz" 144;
-  letter-spacing: -0.02em;
-  line-height: 0.98;
+  /* Fraunces can look a bit “puffy” at very large opsz.
+     A slightly smaller opsz + SOFT makes it feel more premium. */
+  font-variation-settings: "opsz" 96, "SOFT" 60;
+  letter-spacing: -0.015em;
+  /* Slightly looser so tall glyphs don't clip (esp. on mobile). */
+  line-height: 1.04;
 }
 
 .font-display-italic {
   font-family: var(--font-display);
   font-style: italic;
-  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-variation-settings: "opsz" 96, "SOFT" 75;
 }
 
 .tabular {
@@ -174,7 +177,8 @@ body {
 }
 
 .rise {
-  overflow: hidden;
+  /* Avoid clipping descenders/diacritics (notably Telugu). */
+  overflow: visible;
 }
 
 .rise > span {
@@ -282,10 +286,12 @@ body {
   font-family: var(--font-sans-te);
 }
 
-:lang(te) .font-display,
+::lang(te) .font-display,
 [data-locale="te"] .font-display {
   font-family: var(--font-display-te);
-  letter-spacing: 0;
+  /* Telugu needs more vertical room; otherwise lines can look "cut". */
+  line-height: 1.14;
+  letter-spacing: -0.01em;
 }
 
 /* Reduced motion */

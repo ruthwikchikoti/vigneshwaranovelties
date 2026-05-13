@@ -25,6 +25,7 @@ export function Footer() {
             <div>
               <h3 className="smallcaps text-[0.62rem] text-champagne mb-5">Shop</h3>
               <ul className="space-y-3 text-sm">
+                <li><Link href="/shop" className="opacity-80 hover:opacity-100 transition-opacity">{tn("shopAll")}</Link></li>
                 <li><Link href="/category/1gram-gold" className="opacity-80 hover:opacity-100 transition-opacity">{tn("collections")}</Link></li>
                 <li><Link href="/category/german-silver" className="opacity-80 hover:opacity-100 transition-opacity">Silver Items</Link></li>
                 <li><Link href="/category/gift-articles" className="opacity-80 hover:opacity-100 transition-opacity">Gift Articles</Link></li>

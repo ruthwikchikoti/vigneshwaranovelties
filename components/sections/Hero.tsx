@@ -64,7 +64,7 @@ export function Hero({
       {/* Text — left on desktop, top on mobile */}
       <div className="flex flex-col justify-center gap-7 lg:gap-9 order-2 lg:order-1 max-w-xl">
         <p className="smallcaps text-[0.7rem] text-champagne-deep">{t("eyebrow")}</p>
-        <h1 className="font-display text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] xl:text-[5.75rem] leading-[0.98] tracking-[-0.015em] text-ink m-0">
+        <h1 className="font-display text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] xl:text-[5.75rem] text-ink m-0">
           <span className="block rise">
             <span style={{ animationDelay: "0.05s" }}>{t("lineOne")}</span>
           </span>

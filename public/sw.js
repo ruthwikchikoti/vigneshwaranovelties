@@ -12,7 +12,14 @@
  */
 
 const CACHE = "vn-v1";
-const PRECACHE = ["/", "/brand/seal.png", "/brand/icon-192.png", "/brand/icon-512.png", "/manifest.webmanifest"];
+const PRECACHE = [
+  "/",
+  "/shop",
+  "/brand/seal.png",
+  "/brand/icon-192.png",
+  "/brand/icon-512.png",
+  "/manifest.webmanifest",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

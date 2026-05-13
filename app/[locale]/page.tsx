@@ -42,9 +42,7 @@ export default async function HomePage({
   const homeEditorialImage = homeEditorial.image_url;
 
   const t = await getTranslations("sections");
-  const collectionsHref = categories[0]?.slug
-    ? `/category/${categories[0].slug}`
-    : "/search";
+  const catalogHref = "/shop";
 
   const heroSlides = banners
     .filter((b) => b.is_active && b.desktop_image_url)
@@ -62,7 +60,7 @@ export default async function HomePage({
       <Hero
         slides={heroSlides}
         intervalSec={heroSettings.rotation_seconds}
-        primaryBrowseHref={collectionsHref}
+        primaryBrowseHref={catalogHref}
       />
 
       {/* Featured */}
@@ -72,8 +70,8 @@ export default async function HomePage({
             eyebrow="Hand-picked"
             title={t("featured")}
             subtitle={t("featuredSub")}
-            href={collectionsHref}
-            hrefLabel="See all"
+            href={catalogHref}
+            hrefLabel={t("seeAll")}
           />
           <div className="mt-12 lg:mt-16">
             <ProductGrid products={featured} cols={4} priorityCount={2} />
@@ -88,8 +86,8 @@ export default async function HomePage({
             eyebrow="Showroom"
             title={t("categories")}
             subtitle={t("categoriesSub")}
-            href={collectionsHref}
-            hrefLabel="All collections"
+            href={catalogHref}
+            hrefLabel={t("allPieces")}
           />
           <div className="mt-12 lg:mt-16">
             <CategoryStrip categories={categories.slice(0, 6)} offers={offers} />
@@ -135,8 +133,8 @@ export default async function HomePage({
             eyebrow="Most loved"
             title={t("trending")}
             subtitle={t("trendingSub")}
-            href={collectionsHref}
-            hrefLabel="See all"
+            href={catalogHref}
+            hrefLabel={t("seeAll")}
           />
           <div className="mt-12 lg:mt-16">
             <ProductGrid products={trending} cols={4} />
@@ -151,8 +149,8 @@ export default async function HomePage({
             eyebrow="Just in"
             title={t("newArrivals")}
             subtitle={t("newArrivalsSub")}
-            href={collectionsHref}
-            hrefLabel="See all"
+            href={catalogHref}
+            hrefLabel={t("seeAll")}
           />
           <div className="mt-12 lg:mt-16">
             <ProductGrid products={newArrivals} cols={4} />
