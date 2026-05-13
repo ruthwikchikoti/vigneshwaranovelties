@@ -11,13 +11,11 @@
  *   - Background sync, push notifications, periodic sync
  */
 
-const CACHE = "vn-v1";
+const CACHE = "vn-v2";
 const PRECACHE = [
   "/",
   "/shop",
   "/brand/seal.png",
-  "/brand/icon-192.png",
-  "/brand/icon-512.png",
   "/manifest.webmanifest",
 ];
 

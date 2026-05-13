@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "exclude": [
+    "/sw.js",
+    "/manifest.webmanifest",
+    "/brand/*",
+    "/fonts/*"
+  ]
+}

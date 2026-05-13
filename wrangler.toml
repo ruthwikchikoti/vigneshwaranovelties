@@ -1,5 +1,9 @@
 # Cloudflare Pages config for Vigneshwara Novelties.
 # Used by `wrangler pages deploy` after `next-on-pages` builds the project.
+#
+# PWA: keep repo-root `_routes.json` in sync with static assets (sw.js, manifest,
+# brand, fonts). next-on-pages merges it into `.vercel/output/static/_routes.json`
+# so those URLs bypass the worker and service workers register correctly in production.
 name = "vigneshwara-novelties"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
