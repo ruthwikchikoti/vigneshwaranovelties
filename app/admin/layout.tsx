@@ -1,4 +1,6 @@
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { RegisterSW } from "@/components/pwa/RegisterSW";
 import "../globals.css";
 
 const fraunces = localFont({
@@ -20,12 +22,26 @@ const interTight = localFont({
 // Edge runtime cascades to /admin/login, /admin/logout, and the (dashboard) group.
 export const runtime = "edge";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Admin · Vigneshwara Novelties",
   robots: { index: false, follow: false },
-  icons: {
-    icon: [{ url: "/brand/seal.png", type: "image/png" }],
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Admin",
   },
+  icons: {
+    icon: [{ url: "/brand/seal.png", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/brand/seal.png", sizes: "180x180", type: "image/png" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#F6EFE0",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function AdminRootLayout({
@@ -35,7 +51,10 @@ export default function AdminRootLayout({
 }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${interTight.variable} h-full antialiased`}>
-      <body className="min-h-full bg-ivory text-ink flex flex-col">{children}</body>
+      <body className="min-h-full bg-ivory text-ink flex flex-col">
+        {children}
+        <RegisterSW />
+      </body>
     </html>
   );
 }

@@ -2,8 +2,7 @@
  *
  * What it does:
  *   - Precaches the home page + brand icons on install
- *   - Network-first for HTML (so admin and product pages always get fresh data
- *     when online; the cache is only used as an offline fallback)
+ *   - Network-first for HTML (public storefront only; admin is not intercepted)
  *   - Cache-first for /brand/* and /_next/static/* (immutable, hashed)
  *
  * What it intentionally doesn't do:
@@ -11,7 +10,7 @@
  *   - Background sync, push notifications, periodic sync
  */
 
-const CACHE = "vn-v2";
+const CACHE = "vn-v3";
 const PRECACHE = [
   "/",
   "/shop",
@@ -52,6 +51,9 @@ self.addEventListener("fetch", (event) => {
 
   // Never intercept API requests - auth and freshness matter.
   if (url.pathname.startsWith("/api/")) return;
+
+  // Do not intercept admin (avoid caching authenticated HTML / RSC).
+  if (url.pathname.startsWith("/admin")) return;
 
   const isStatic =
     url.pathname.startsWith("/_next/static/") ||
