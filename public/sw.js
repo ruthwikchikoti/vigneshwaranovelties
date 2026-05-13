@@ -1,4 +1,4 @@
-/* Vigneshwara Novelties — minimal offline service worker.
+/* Vigneshwara Novelties - minimal offline service worker.
  *
  * What it does:
  *   - Precaches the home page + brand icons on install
@@ -26,7 +26,7 @@ self.addEventListener("install", (event) => {
       try {
         await cache.addAll(PRECACHE);
       } catch {
-        // Best-effort — if precache fetches fail (e.g. offline at install), we skip.
+        // Best-effort: if precache fetches fail (e.g. offline at install), we skip.
       }
       self.skipWaiting();
     })()
@@ -50,7 +50,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Never intercept API requests — auth & freshness matter.
+  // Never intercept API requests - auth and freshness matter.
   if (url.pathname.startsWith("/api/")) return;
 
   const isStatic =
