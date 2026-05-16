@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { RegisterSW } from "@/components/pwa/RegisterSW";
+import { PendingInquiryBanner } from "@/components/pwa/PendingInquiryBanner";
 import { site } from "@/lib/site";
 import { getAnnouncement } from "@/lib/admin/settings";
 import "../globals.css";
@@ -121,6 +122,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${fontVars} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-ivory text-ink" data-locale={locale}>
         <NextIntlClientProvider messages={messages} locale={locale}>
+          <PendingInquiryBanner />
           <Header announcement={announcement} />
           <main className="flex-1 pb-[60px] lg:pb-0">{children}</main>
           <Footer />

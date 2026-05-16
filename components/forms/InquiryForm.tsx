@@ -9,6 +9,8 @@ import { inquirySchema, type InquiryInput } from "@/lib/validations/inquiry";
 import { Button } from "@/components/ui/Button";
 import { whatsappGeneral } from "@/lib/whatsapp";
 import { IconWhatsapp } from "@/components/ui/IconWhatsapp";
+import { enqueueInquiry } from "@/lib/inquiry-queue";
+import { registerInquirySync, startFallbackRetry } from "@/lib/offline-sync";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -43,23 +45,65 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
 
   const onSubmit = handleSubmit(async (values) => {
     setSubmitError(null);
+
+    const enqueueAndRedirect = async () => {
+      try {
+        await enqueueInquiry(values);
+
+        // Notify the PendingInquiryBanner (which stays mounted across
+        // client-side navigations) to refresh its count.
+        window.dispatchEvent(new Event("inquiry-queued"));
+
+        // Fire-and-forget: register Background Sync (or start fallback timer).
+        // We don't await this — navigator.serviceWorker.ready can hang if the
+        // SW hasn't been registered yet (e.g. in dev mode).
+        registerInquirySync().then((synced) => {
+          if (!synced) startFallbackRetry();
+        });
+
+        onSuccess?.();
+        router.push("/inquiry/success?queued=1");
+      } catch (idbErr) {
+        // IndexedDB itself failed — last resort error
+        console.error(idbErr);
+        setSubmitError(t("errors.generic"));
+      }
+    };
+
+    // `navigator.onLine` is an optimization for the common case — it lets us
+    // skip an obviously-doomed fetch.  It is NOT a reliable connectivity check
+    // (e.g. captive portals report `true`).  The `catch` path below is the
+    // real safety net for network failures.
+    if (!navigator.onLine) {
+      await enqueueAndRedirect();
+      return;
+    }
+
+    // Online — attempt the fetch
     try {
       const res = await fetch("/api/inquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "submit");
+
+      if (res.ok) {
+        // Navigate first; the success page mounts a <CartClearer /> which
+        // empties the cart only after CartView has unmounted — no empty-cart
+        // flash.
+        onSuccess?.();
+        router.push("/inquiry/success");
+        return;
       }
-      // Navigate first; the success page mounts a <CartClearer /> which empties
-      // the cart only after CartView has unmounted — no empty-cart flash.
-      onSuccess?.();
-      router.push("/inquiry/success");
-    } catch (err) {
-      console.error(err);
+
+      // Server returned an error — show it to the user rather than silently
+      // queuing, since 4xx errors (validation, etc.) will never succeed on
+      // replay and would eventually be discarded.
       setSubmitError(t("errors.generic"));
+    } catch {
+      // fetch() rejected → genuine network / connection failure.  Queue the
+      // inquiry for later replay.
+      await enqueueAndRedirect();
     }
   });
 
