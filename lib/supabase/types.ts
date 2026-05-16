@@ -115,6 +115,15 @@ export type CmsPage = {
   updated_at: string;
 };
 
+export type PushSubscriptionRecord = {
+  id: string;
+  endpoint: string;
+  key_p256dh: string;
+  key_auth: string;
+  user_id: string;
+  created_at: string;
+};
+
 export type Localized<T> = T & { __locale?: Locale };
 
 export function localize<T extends Record<string, unknown>>(

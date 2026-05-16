@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { inquirySchema } from "@/lib/validations/inquiry";
 import { createServiceClient } from "@/lib/supabase/server";
 import { sendInquiryEmail } from "@/lib/email";
+import { notifyAdminsPush } from "@/lib/push-notify";
 
 export const runtime = "edge";
 
@@ -62,6 +63,10 @@ export async function POST(req: Request) {
   // surfaced in the response so admins can spot misconfiguration, but they
   // never block the customer — the inquiry is already persisted.
   const emailResult = await sendInquiryEmail(inquiry);
+
+  // 3. Push notification to admin devices (best-effort, like email).
+  const itemCount = inquiry.items.reduce((s, i) => s + i.qty, 0);
+  await notifyAdminsPush({ customer_name: inquiry.customer_name, item_count: itemCount });
 
   return NextResponse.json({ ok: true, email: emailResult });
 }
