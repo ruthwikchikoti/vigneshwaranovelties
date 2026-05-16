@@ -67,7 +67,7 @@ export default async function HomePage({
       <section className="py-20 lg:py-32">
         <Container size="xl">
           <SectionHeader
-            eyebrow="Hand-picked"
+            eyebrow={t("featuredEyebrow")}
             title={t("featured")}
             subtitle={t("featuredSub")}
             href={catalogHref}
@@ -83,7 +83,7 @@ export default async function HomePage({
       <section className="py-20 lg:py-28 bg-mist-soft">
         <Container size="xl">
           <SectionHeader
-            eyebrow="Showroom"
+            eyebrow={t("categoriesEyebrow")}
             title={t("categories")}
             subtitle={t("categoriesSub")}
             href={catalogHref}
@@ -99,7 +99,7 @@ export default async function HomePage({
       <section className="py-20 lg:py-28">
         <Container size="xl">
           <SectionHeader
-            eyebrow="This week"
+            eyebrow={t("offersEyebrow")}
             title={t("offers")}
             subtitle={t("offersSub")}
             href="/offers"
@@ -115,11 +115,11 @@ export default async function HomePage({
         <Container size="xl">
           <Editorial
             dark
-            eyebrow="Our family shop"
-            title="Pretty things, simple to buy."
-            body="Vigneshwara Novelties is a family-run showroom in Cherial, Telangana — with more than 20 years in the business. We pick 1-gram gold jewelry, German silver, pulse chains and gift articles ourselves, and explain everything in simple words. Visit us, or just message on WhatsApp."
+            eyebrow={t("editorialEyebrow")}
+            title={t("editorialTitle")}
+            body={t("editorialBody")}
             imageUrl={homeEditorialImage}
-            ctaLabel="Our story"
+            ctaLabel={t("editorialCta")}
             ctaHref="/about"
             reverse
           />
@@ -130,7 +130,7 @@ export default async function HomePage({
       <section className="py-20 lg:py-32">
         <Container size="xl">
           <SectionHeader
-            eyebrow="Most loved"
+            eyebrow={t("trendingEyebrow")}
             title={t("trending")}
             subtitle={t("trendingSub")}
             href={catalogHref}
@@ -146,7 +146,7 @@ export default async function HomePage({
       <section className="py-20 lg:py-28 bg-mist-soft">
         <Container size="xl">
           <SectionHeader
-            eyebrow="Just in"
+            eyebrow={t("newArrivalsEyebrow")}
             title={t("newArrivals")}
             subtitle={t("newArrivalsSub")}
             href={catalogHref}
@@ -159,7 +159,7 @@ export default async function HomePage({
       </section>
 
       {/* For returning visitors */}
-      <RecentlyViewedStrip title="Pick up where you left off" />
+      <RecentlyViewedStrip title={t("recentlyViewed")} />
     </>
   );
 }
