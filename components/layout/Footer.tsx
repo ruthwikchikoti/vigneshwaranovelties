@@ -6,6 +6,7 @@ import { site } from "@/lib/site";
 
 export function Footer() {
   const tn = useTranslations("nav");
+  const tf = useTranslations("footer");
 
   return (
     <footer className="bg-ink-panel text-on-ink-2 mt-24 lg:mt-32">
@@ -15,36 +16,35 @@ export function Footer() {
           <div className="flex flex-col gap-5 items-start">
             <Seal size={96} className="opacity-95" />
             <p className="text-sm leading-relaxed max-w-sm text-on-ink-2">
-              A jewelry and gift articles boutique. Visit our showroom in Cherial,
-              or browse the collections and request a piece online.
+              {tf("description")}
             </p>
           </div>
 
           {/* Three columns of links */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-10 lg:gap-12">
             <div>
-              <h3 className="smallcaps text-[0.62rem] text-champagne mb-5">Shop</h3>
+              <h3 className="smallcaps text-[0.62rem] text-champagne mb-5">{tf("shopHeading")}</h3>
               <ul className="space-y-3 text-sm">
                 <li><Link href="/shop" className="opacity-80 hover:opacity-100 transition-opacity">{tn("shopAll")}</Link></li>
                 <li><Link href="/category/1gram-gold" className="opacity-80 hover:opacity-100 transition-opacity">{tn("collections")}</Link></li>
-                <li><Link href="/category/german-silver" className="opacity-80 hover:opacity-100 transition-opacity">Silver Items</Link></li>
-                <li><Link href="/category/gift-articles" className="opacity-80 hover:opacity-100 transition-opacity">Gift Articles</Link></li>
+                <li><Link href="/category/german-silver" className="opacity-80 hover:opacity-100 transition-opacity">{tf("silverItems")}</Link></li>
+                <li><Link href="/category/gift-articles" className="opacity-80 hover:opacity-100 transition-opacity">{tf("giftArticles")}</Link></li>
                 <li><Link href="/offers" className="opacity-80 hover:opacity-100 transition-opacity">{tn("offers")}</Link></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="smallcaps text-[0.62rem] text-champagne mb-5">The store</h3>
+              <h3 className="smallcaps text-[0.62rem] text-champagne mb-5">{tf("storeHeading")}</h3>
               <ul className="space-y-3 text-sm">
                 <li><Link href="/about" className="opacity-80 hover:opacity-100 transition-opacity">{tn("about")}</Link></li>
-                <li><Link href="/contact" className="opacity-80 hover:opacity-100 transition-opacity">Visit us</Link></li>
+                <li><Link href="/contact" className="opacity-80 hover:opacity-100 transition-opacity">{tf("visitUs")}</Link></li>
                 <li><Link href="/contact" className="opacity-80 hover:opacity-100 transition-opacity">{tn("contact")}</Link></li>
-                <li><Link href="/faq" className="opacity-80 hover:opacity-100 transition-opacity">FAQ</Link></li>
+                <li><Link href="/faq" className="opacity-80 hover:opacity-100 transition-opacity">{tf("faq")}</Link></li>
               </ul>
             </div>
 
             <div className="col-span-2 sm:col-span-1">
-              <h3 className="smallcaps text-[0.62rem] text-champagne mb-5">Reach us</h3>
+              <h3 className="smallcaps text-[0.62rem] text-champagne mb-5">{tf("reachHeading")}</h3>
               <ul className="space-y-3 text-sm">
                 <li><a href={`tel:${site.ownerPhone.replace(/\s+/g, "")}`} className="opacity-80 hover:opacity-100 transition-opacity">{site.ownerPhone}</a></li>
                 <li><a href={`mailto:${site.ownerEmail}`} className="opacity-80 hover:opacity-100 transition-opacity">{site.ownerEmail}</a></li>
@@ -61,11 +61,11 @@ export function Footer() {
           <p>© {new Date().getFullYear()} {site.name}</p>
           <LanguageSwitcher className="text-on-ink" />
           <p className="smallcaps text-[0.6rem] tracking-[0.18em] text-center sm:text-right">
-            <Link href="/privacy" className="hover:opacity-100">Privacy</Link>
+            <Link href="/privacy" className="hover:opacity-100">{tf("privacy")}</Link>
             &nbsp;·&nbsp;
-            <Link href="/terms" className="hover:opacity-100">Terms</Link>
+            <Link href="/terms" className="hover:opacity-100">{tf("terms")}</Link>
             &nbsp;·&nbsp;
-            Crafted in Cherial
+            {tf("craftedIn")}
           </p>
         </div>
       </div>

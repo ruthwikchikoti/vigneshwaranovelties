@@ -13,6 +13,7 @@ import { IconArrowRight } from "@/components/ui/Icons";
 
 export function WishlistView() {
   const tNav = useTranslations("nav");
+  const t = useTranslations("wishlist");
   const items = useWishlist((s) => s.items);
   const remove = useWishlist((s) => s.remove);
   const addToCart = useCart((s) => s.add);
@@ -24,18 +25,18 @@ export function WishlistView() {
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return <div className="py-20 lg:py-32 text-center text-sm text-ink/40">Loading saved pieces…</div>;
+    return <div className="py-20 lg:py-32 text-center text-sm text-ink/40">{t("loading")}</div>;
   }
 
   if (items.length === 0) {
     return (
       <div className="py-20 lg:py-32 text-center max-w-md mx-auto flex flex-col items-center gap-6">
-        <p className="smallcaps text-[0.65rem] text-champagne-deep">Saved pieces</p>
+        <p className="smallcaps text-[0.65rem] text-champagne-deep">{t("eyebrow")}</p>
         <h1 className="font-display text-[2.5rem] lg:text-[3.5rem] text-ink leading-tight">
-          Nothing saved yet.
+          {t("emptyTitle")}
         </h1>
         <p className="text-ink/60 text-sm">
-          Tap the heart on any piece to save it here for later.
+          {t("emptyBody")}
         </p>
         <ButtonLink href="/shop" variant="ink">
           {tNav("shopAll")}
@@ -47,12 +48,12 @@ export function WishlistView() {
 
   return (
     <div className="py-12 lg:py-20">
-      <p className="smallcaps text-[0.65rem] text-champagne-deep mb-3">Saved pieces</p>
+      <p className="smallcaps text-[0.65rem] text-champagne-deep mb-3">{t("eyebrow")}</p>
       <h1 className="font-display text-[2.5rem] lg:text-[3.25rem] text-ink leading-none mb-2">
-        Your saved pieces
+        {t("title")}
       </h1>
       <p className="text-ink/55 text-sm mb-10 tabular">
-        {items.length} piece{items.length === 1 ? "" : "s"}
+        {items.length} {items.length === 1 ? "piece" : "pieces"}
       </p>
 
       <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
@@ -95,15 +96,15 @@ export function WishlistView() {
                     }
                     className="smallcaps text-[0.55rem] px-2.5 py-1.5 bg-ink text-ivory hover:bg-ink-soft disabled:bg-champagne disabled:text-ink transition-colors"
                   >
-                    {inCart ? "Added" : "Inquire"}
+                    {inCart ? t("added") : t("inquire")}
                   </button>
                   <button
                     type="button"
                     onClick={() => remove(item.product_id)}
                     className="smallcaps text-[0.55rem] text-ink/40 hover:text-vermilion transition-colors"
-                    aria-label="Remove from saved"
+                    aria-label={t("removeLabel")}
                   >
-                    Remove
+                    {t("remove")}
                   </button>
                 </div>
               </div>

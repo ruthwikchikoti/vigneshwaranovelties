@@ -14,7 +14,10 @@
     "contact": "Contact",
     "search": "Search",
     "cart": "Cart",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "silver": "Silver",
+    "gifting": "Gifting",
+    "savedPieces": "Saved pieces"
   },
   "shop": {
     "metaTitle": "Browse all",
@@ -44,16 +47,28 @@
     "allPieces": "Browse all",
     "featured": "Featured",
     "featuredSub": "Pieces our customers love",
+    "featuredEyebrow": "Hand-picked",
     "trending": "Trending Now",
     "trendingSub": "Most asked-for this season",
+    "trendingEyebrow": "Most loved",
     "newArrivals": "Just Arrived",
     "newArrivalsSub": "Fresh in our showroom",
+    "newArrivalsEyebrow": "Just in",
     "categories": "Browse Collections",
     "categoriesSub": "Pick by style or occasion",
+    "categoriesEyebrow": "Showroom",
     "offers": "Today's Offers",
     "offersSub": "Limited time savings",
+    "offersEyebrow": "This week",
     "gifting": "Gifting",
-    "giftingSub": "Hand-picked for festivals & moments"
+    "giftingSub": "Hand-picked for festivals & moments",
+    "editorialEyebrow": "Our family shop",
+    "editorialTitle": "Pretty things, simple to buy.",
+    "editorialBody": "Vigneshwara Novelties is a family-run showroom in Cherial, Telangana — with more than 20 years in the business. We pick 1-gram gold jewelry, German silver, pulse chains and gift articles ourselves, and explain everything in simple words. Visit us, or just message on WhatsApp.",
+    "editorialCta": "Our story",
+    "recentlyViewed": "Pick up where you left off",
+    "collection": "Collection",
+    "explore": "Explore"
   },
   "product": {
     "addToInquiry": "Add to Cart",
@@ -75,7 +90,8 @@
     "noProducts": "No products to show right now.",
     "viewAll": "See all",
     "price": "Price",
-    "from": "from"
+    "from": "from",
+    "inquire": "Inquire"
   },
   "cart": {
     "title": "Your Cart",
@@ -125,7 +141,14 @@
   },
   "about": {
     "title": "About Vigneshwara Novelties",
-    "subtitle": "A family showroom in Cherial, Telangana — over 20 years in the business."
+    "subtitle": "A family showroom in Cherial, Telangana — over 20 years in the business.",
+    "eyebrow": "Our story",
+    "body1": "Vigneshwara Novelties is a family-run showroom in Cherial, Telangana — with more than 20 years in the business. One simple idea has stayed with us all this time: beautiful jewelry and gifts should be friendly to buy, not intimidating.",
+    "body2": "We stock 1-gram gold jewelry, German silver pieces, pulse chains, and a wide range of gift articles for festivals, weddings, birthdays and every small moment in between. Everything is hand-picked and priced fairly — and our family is on the other end of every WhatsApp message.",
+    "quote": "Pretty things, simple to buy. That's it.",
+    "body3": "Whether you're looking for a gift for your sister's wedding, a chain for everyday wear, or something special for a festival — come visit our showroom on Cherial Road, or send us a WhatsApp. We're open all 7 days, 10 AM to 8 PM.",
+    "ctaCollections": "See Collections",
+    "ctaVisit": "Visit our showroom"
   },
   "contact": {
     "title": "Visit our showroom",
@@ -134,7 +157,8 @@
     "emailUs": "Email us",
     "whatsappUs": "Message on WhatsApp",
     "address": "Address",
-    "hours": "Hours"
+    "hours": "Hours",
+    "eyebrow": "Reach us"
   },
   "footer": {
     "tagline": "Family-run · Cherial, Telangana · 20+ years.",
@@ -145,7 +169,18 @@
     "subscribeNote": "We only message for festivals & new pieces.",
     "rights": "All rights reserved.",
     "languageEn": "English",
-    "languageTe": "తెలుగు"
+    "languageTe": "తెలుగు",
+    "shopHeading": "Shop",
+    "storeHeading": "The store",
+    "reachHeading": "Reach us",
+    "silverItems": "Silver Items",
+    "giftArticles": "Gift Articles",
+    "visitUs": "Visit us",
+    "faq": "FAQ",
+    "description": "A jewelry and gift articles boutique. Visit our showroom in Cherial, or browse the collections and request a piece online.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "craftedIn": "Crafted in Cherial"
   },
   "common": {
     "loading": "Loading…",
@@ -155,5 +190,72 @@
     "close": "Close",
     "more": "More",
     "less": "Less"
+  },
+  "wishlist": {
+    "eyebrow": "Saved pieces",
+    "emptyTitle": "Nothing saved yet.",
+    "emptyBody": "Tap the heart on any piece to save it here for later.",
+    "title": "Your saved pieces",
+    "loading": "Loading saved pieces…",
+    "added": "Added",
+    "inquire": "Inquire",
+    "remove": "Remove",
+    "removeLabel": "Remove from saved"
+  },
+  "search": {
+    "eyebrow": "Search",
+    "title": "Find a piece",
+    "resultsFor": "Results for",
+    "noMatchTitle": "Nothing matches that yet.",
+    "noMatchBody": "Try a different word, browse a collection, or message us on WhatsApp — we can tell you whether the piece is available in the showroom.",
+    "hint": "Type a piece name, material (silver, gold, brass), or occasion (wedding, festive) to look up the catalogue.",
+    "pieces": "{count} piece",
+    "piecesPlural": "{count} pieces"
+  },
+  "notFound": {
+    "eyebrow": "404",
+    "title": "We seem to have lost this piece.",
+    "body": "The page you were looking for isn't here. Wander back to the showroom — there's plenty more to discover.",
+    "cta": "Return home"
+  },
+  "faq": {
+    "eyebrow": "Help",
+    "title": "FAQ",
+    "titleTe": "తరచుగా అడిగే ప్రశ్నలు",
+    "empty": "No questions have been published yet. Check back soon, or message us on WhatsApp below.",
+    "noAnswerTitle": "Didn't find your answer?",
+    "noAnswerBody": "Send us a WhatsApp message — we usually reply within a few hours.",
+    "whatsappCta": "Chat on WhatsApp"
+  },
+  "privacy": {
+    "eyebrow": "Legal",
+    "title": "Privacy Policy",
+    "body1": "We respect your privacy. {name} only collects what we need to call you back — your name, mobile number, and optional address.",
+    "collectHeading": "What we collect",
+    "collectBody": "When you place an order: your name, mobile number, and optional address and notes. When you browse: anonymous usage stats.",
+    "useHeading": "How we use it",
+    "useBody": "To call or WhatsApp you about your order. We do not sell your data and we do not send marketing messages without your permission.",
+    "storeHeading": "Where it lives",
+    "storeBody": "Your details are stored securely with our backend (Supabase) and accessed only by our family.",
+    "removeHeading": "Want it removed?",
+    "removeBody": "WhatsApp {phone} or email {email} and we'll remove your details within 24 hours."
+  },
+  "terms": {
+    "eyebrow": "Legal",
+    "title": "Terms & Conditions",
+    "intro": "By using {name}, you agree to the simple terms below. We're a family-run shop in Cherial — these terms are written in plain English so everyone understands.",
+    "cartHeading": "1. Cart & pricing",
+    "cartBody": "Prices on our site are indicative. Final price is confirmed by our team when we call or message you back. We do not take payments online — every order is followed up personally by our family.",
+    "mtoHeading": "2. Made-to-order pieces",
+    "mtoBody": "Some pieces are made on order. We'll tell you the time needed when we confirm your order — usually 1 to 2 weeks.",
+    "returnsHeading": "3. Returns & exchanges",
+    "returnsBody": "You can return or exchange unused items within 7 days at our showroom in Cherial. Customised pieces and used items can't be returned.",
+    "qualityHeading": "4. Quality",
+    "qualityBody": "We sell 1-gram gold jewelry, German silver, pulse chains and gift articles. We're upfront about every piece's material and finish. Ask us anything before you order — we'll explain.",
+    "contactHeading": "5. Contact",
+    "contactBody": "For any question: WhatsApp {phone} or call {phoneAlt}. Email {email}."
+  },
+  "mobileNav": {
+    "chat": "Chat"
   }
 }

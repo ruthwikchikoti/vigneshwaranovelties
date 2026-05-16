@@ -3,7 +3,7 @@ import { Link } from "@/i18n/routing";
 import type { Category, Offer } from "@/lib/supabase/types";
 import { localize } from "@/lib/supabase/types";
 import { ikImage, placeholderImage } from "@/lib/imagekit";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { IconArrowRight } from "@/components/ui/Icons";
 import { liveOffersByCategory } from "@/lib/offers";
 
@@ -15,6 +15,7 @@ type Props = {
 
 export function CategoryStrip({ categories, offers = [] }: Props) {
   const locale = useLocale() as "en" | "te";
+  const t = useTranslations("sections");
   const offerByCategory = liveOffersByCategory(offers);
 
   return (
@@ -49,7 +50,7 @@ export function CategoryStrip({ categories, offers = [] }: Props) {
 
               <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8 text-ivory">
                 <p className="smallcaps text-[0.6rem] text-champagne mb-2">
-                  Collection
+                  {t("collection")}
                 </p>
                 <h3 className="font-display text-[1.75rem] sm:text-[2.25rem] leading-tight">
                   {name}
@@ -60,7 +61,7 @@ export function CategoryStrip({ categories, offers = [] }: Props) {
                   </p>
                 ) : null}
                 <span className="inline-flex items-center gap-2 smallcaps text-[0.65rem] mt-4 text-champagne group-hover:gap-3 transition-all">
-                  Explore
+                  {t("explore")}
                   <IconArrowRight />
                 </span>
               </div>

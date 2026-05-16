@@ -1,4 +1,4 @@
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Container } from "@/components/ui/Container";
 import { site } from "@/lib/site";
 import { getCmsPage } from "@/lib/admin/cms";
@@ -11,53 +11,33 @@ export default async function TermsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("terms");
   const cms = await getCmsPage("terms");
   const cmsTitle = pickCmsTitle(cms, locale as "en" | "te");
   const cmsBody = pickCmsBody(cms, locale as "en" | "te");
 
   return (
     <Container size="md" className="py-16 lg:py-28">
-      <p className="smallcaps text-[0.65rem] text-champagne-deep mb-4">Legal</p>
+      <p className="smallcaps text-[0.65rem] text-champagne-deep mb-4">{t("eyebrow")}</p>
       <h1 className="font-display text-[2.75rem] lg:text-[4rem] text-ink leading-tight mb-12">
-        {cmsTitle ?? "Terms & Conditions"}
+        {cmsTitle ?? t("title")}
       </h1>
       <div className="prose-legal">
         {cmsBody ? (
           renderCmsBody(cmsBody)
         ) : (
           <>
-            <p>
-              By using {site.name}, you agree to the simple terms below. We&apos;re a
-              family-run shop in Cherial — these terms are written in plain English so
-              everyone understands.
-            </p>
-            <h2>1. Cart &amp; pricing</h2>
-            <p>
-              Prices on our site are indicative. Final price is confirmed by our team
-              when we call or message you back. We do not take payments online — every
-              order is followed up personally by our family.
-            </p>
-            <h2>2. Made-to-order pieces</h2>
-            <p>
-              Some pieces are made on order. We&apos;ll tell you the time needed when we
-              confirm your order — usually 1 to 2 weeks.
-            </p>
-            <h2>3. Returns &amp; exchanges</h2>
-            <p>
-              You can return or exchange unused items within 7 days at our showroom in
-              Cherial. Customised pieces and used items can&apos;t be returned.
-            </p>
-            <h2>4. Quality</h2>
-            <p>
-              We sell 1-gram gold jewelry, German silver, pulse chains and gift articles.
-              We&apos;re upfront about every piece&apos;s material and finish. Ask us anything before
-              you order — we&apos;ll explain.
-            </p>
-            <h2>5. Contact</h2>
-            <p>
-              For any question: WhatsApp {site.ownerPhone} or call {site.ownerPhoneAlt}.
-              Email {site.ownerEmail}.
-            </p>
+            <p>{t("intro", { name: site.name })}</p>
+            <h2>{t("cartHeading")}</h2>
+            <p>{t("cartBody")}</p>
+            <h2>{t("mtoHeading")}</h2>
+            <p>{t("mtoBody")}</p>
+            <h2>{t("returnsHeading")}</h2>
+            <p>{t("returnsBody")}</p>
+            <h2>{t("qualityHeading")}</h2>
+            <p>{t("qualityBody")}</p>
+            <h2>{t("contactHeading")}</h2>
+            <p>{t("contactBody", { phone: site.ownerPhone, phoneAlt: site.ownerPhoneAlt, email: site.ownerEmail })}</p>
           </>
         )}
       </div>
