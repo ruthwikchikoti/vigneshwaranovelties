@@ -1,10 +1,7 @@
 import type { InquiryInput } from "@/lib/validations/inquiry";
+import { IDB_NAME, IDB_VERSION, IDB_STORE } from "@/lib/inquiry-queue-constants";
 
-const DB_NAME = "vn-inquiry-queue";
-const DB_VERSION = 1;
-const STORE_NAME = "pending";
-
-type QueuedInquiry = InquiryInput & { _queueId: number; _queuedAt: number };
+export type QueuedInquiry = InquiryInput & { _queueId: number; _queuedAt: number };
 
 /**
  * Opens (or creates) the IndexedDB database.
@@ -17,12 +14,12 @@ function openDB(): Promise<IDBDatabase> {
       return;
     }
 
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const request = indexedDB.open(IDB_NAME, IDB_VERSION);
 
     request.onupgradeneeded = () => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, {
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE, {
           keyPath: "_queueId",
           autoIncrement: true,
         });
@@ -35,105 +32,62 @@ function openDB(): Promise<IDBDatabase> {
 }
 
 /**
+ * Run a single IndexedDB transaction and close the database afterwards.
+ *
+ * Resolves/rejects only from the transaction-level events to avoid the
+ * double-reject that occurs when both `request.onerror` and `tx.onerror`
+ * fire.  The db is closed in both success and error paths.
+ */
+function withTransaction<T>(
+  mode: IDBTransactionMode,
+  fn: (store: IDBObjectStore) => IDBRequest,
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    openDB()
+      .then((db) => {
+        const tx = db.transaction(IDB_STORE, mode);
+        const store = tx.objectStore(IDB_STORE);
+        const request = fn(store);
+
+        tx.oncomplete = () => {
+          resolve(request.result as T);
+          db.close();
+        };
+        tx.onerror = () => {
+          reject(tx.error);
+          db.close();
+        };
+      })
+      .catch(reject);
+  });
+}
+
+/**
  * Enqueue an inquiry payload for later sync.
  * Returns the auto-generated queue key.
  */
-export async function enqueueInquiry(
-  payload: InquiryInput,
-): Promise<number> {
-  const db = await openDB();
-  return new Promise<number>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    const record = { ...payload, _queuedAt: Date.now() };
-    const request = store.add(record);
-
-    request.onsuccess = () => resolve(request.result as number);
-    request.onerror = () => reject(request.error);
-    tx.oncomplete = () => db.close();
-    tx.onerror = () => {
-      reject(tx.error);
-      db.close();
-    };
-  });
+export function enqueueInquiry(payload: InquiryInput): Promise<number> {
+  const record = { ...payload, _queuedAt: Date.now() };
+  return withTransaction<number>("readwrite", (store) => store.add(record));
 }
 
 /**
  * Remove a successfully-synced inquiry from the queue.
  */
-export async function dequeueInquiry(queueId: number): Promise<void> {
-  const db = await openDB();
-  return new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    const request = store.delete(queueId);
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-    tx.oncomplete = () => db.close();
-    tx.onerror = () => {
-      reject(tx.error);
-      db.close();
-    };
-  });
+export function dequeueInquiry(queueId: number): Promise<void> {
+  return withTransaction<void>("readwrite", (store) => store.delete(queueId));
 }
 
 /**
  * Return every pending inquiry without removing them.
  */
-export async function peekInquiries(): Promise<QueuedInquiry[]> {
-  const db = await openDB();
-  return new Promise<QueuedInquiry[]>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const store = tx.objectStore(STORE_NAME);
-    const request = store.getAll();
-
-    request.onsuccess = () => resolve(request.result as QueuedInquiry[]);
-    request.onerror = () => reject(request.error);
-    tx.oncomplete = () => db.close();
-    tx.onerror = () => {
-      reject(tx.error);
-      db.close();
-    };
-  });
+export function peekInquiries(): Promise<QueuedInquiry[]> {
+  return withTransaction<QueuedInquiry[]>("readonly", (store) => store.getAll());
 }
 
 /**
  * Return the number of inquiries waiting in the queue.
  */
-export async function countPendingInquiries(): Promise<number> {
-  const db = await openDB();
-  return new Promise<number>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const store = tx.objectStore(STORE_NAME);
-    const request = store.count();
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-    tx.oncomplete = () => db.close();
-    tx.onerror = () => {
-      reject(tx.error);
-      db.close();
-    };
-  });
-}
-
-/**
- * Drop every record from the pending store.
- */
-export async function clearInquiryQueue(): Promise<void> {
-  const db = await openDB();
-  return new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    const request = store.clear();
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-    tx.oncomplete = () => db.close();
-    tx.onerror = () => {
-      reject(tx.error);
-      db.close();
-    };
-  });
+export function countPendingInquiries(): Promise<number> {
+  return withTransaction<number>("readonly", (store) => store.count());
 }

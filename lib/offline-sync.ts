@@ -5,9 +5,8 @@ import {
   dequeueInquiry,
   countPendingInquiries,
 } from "@/lib/inquiry-queue";
+import { SYNC_TAG, CHANNEL_NAME } from "@/lib/inquiry-queue-constants";
 
-const SYNC_TAG = "replay-inquiry";
-const CHANNEL_NAME = "vn-inquiry-sync";
 const RETRY_INTERVAL_MS = 30_000;
 
 /** Module-level handle so we never spin up duplicate intervals. */
@@ -41,13 +40,19 @@ export async function registerInquirySync(): Promise<boolean> {
 }
 
 // ---------------------------------------------------------------------------
-// Replay queue (used by both the fallback timer and the service-worker)
+// Replay queue (main-thread fallback when Background Sync is unavailable)
 // ---------------------------------------------------------------------------
 
 /**
  * Walk through every queued inquiry, POST it to the API, and remove it on
- * success.  Stops at the **first network error** so we don't burn mobile data
- * on a flaky connection.
+ * success.
+ *
+ * - 2xx → dequeue (success).
+ * - 429 (rate limit) → stop, retry later (transient).
+ * - Other 4xx → dequeue (permanent client error; will never succeed) and
+ *   notify the user via BroadcastChannel.
+ * - 5xx → stop, retry later (transient server error).
+ * - Network error → stop, retry later.
  *
  * After a full successful drain it broadcasts an `inquiry-synced` message so
  * the UI can update (e.g. hide a pending-badge).
@@ -57,6 +62,7 @@ export async function replayQueue(): Promise<void> {
   if (entries.length === 0) return;
 
   let allSucceeded = true;
+  let replayedCount = 0;
 
   for (const entry of entries) {
     // Strip internal queue metadata before sending to the API.
@@ -72,8 +78,19 @@ export async function replayQueue(): Promise<void> {
 
       if (res.ok) {
         await dequeueInquiry(_queueId);
+        replayedCount++;
+      } else if (res.status === 429) {
+        // Rate-limited — transient; stop and retry later.
+        allSucceeded = false;
+        break;
+      } else if (res.status >= 400 && res.status < 500) {
+        // Permanent client error (validation, bad request, etc.) — discard
+        // since replaying won't help, but notify the user.
+        await dequeueInquiry(_queueId);
+        replayedCount++;
+        broadcastDiscarded(_queueId);
       } else {
-        // Server returned a non-2xx status — stop to avoid repeated failures.
+        // 5xx — transient server error; stop and retry later.
         allSucceeded = false;
         break;
       }
@@ -84,11 +101,21 @@ export async function replayQueue(): Promise<void> {
     }
   }
 
-  if (allSucceeded && typeof BroadcastChannel !== "undefined") {
+  if (replayedCount > 0 && typeof BroadcastChannel !== "undefined") {
     const bc = new BroadcastChannel(CHANNEL_NAME);
     bc.postMessage({ type: "inquiry-synced" });
     bc.close();
   }
+}
+
+/**
+ * Notify the UI that a permanently-failed entry was discarded.
+ */
+function broadcastDiscarded(queueId: number): void {
+  if (typeof BroadcastChannel === "undefined") return;
+  const bc = new BroadcastChannel(CHANNEL_NAME);
+  bc.postMessage({ type: "inquiry-discarded", queueId });
+  bc.close();
 }
 
 // ---------------------------------------------------------------------------
@@ -106,6 +133,9 @@ export function startFallbackRetry(): void {
   if (fallbackIntervalId !== null) return;
 
   fallbackIntervalId = setInterval(async () => {
+    // Skip when definitely offline to avoid unnecessary fetch errors.
+    if (!navigator.onLine) return;
+
     await replayQueue();
 
     const remaining = await countPendingInquiries();
@@ -114,6 +144,27 @@ export function startFallbackRetry(): void {
       fallbackIntervalId = null;
     }
   }, RETRY_INTERVAL_MS);
+}
+
+/**
+ * Check whether there are pending inquiries and, if Background Sync is not
+ * available, start the fallback retry timer.  Intended to be called once on
+ * app startup (e.g. from `RegisterSW` or `PendingInquiryBanner`) so that
+ * inquiries queued in a previous session are eventually replayed even when the
+ * browser lacks Background Sync support.
+ */
+export async function ensureFallbackRetryIfNeeded(): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  const pending = await countPendingInquiries().catch(() => 0);
+  if (pending === 0) return;
+
+  // If Background Sync is available the SW will handle it — no need for a
+  // client-side fallback.
+  const hasBgSync = await registerInquirySync();
+  if (!hasBgSync) {
+    startFallbackRetry();
+  }
 }
 
 // ---------------------------------------------------------------------------

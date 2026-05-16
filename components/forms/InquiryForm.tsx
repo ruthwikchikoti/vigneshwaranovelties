@@ -49,6 +49,11 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
     const enqueueAndRedirect = async () => {
       try {
         await enqueueInquiry(values);
+
+        // Notify the PendingInquiryBanner (which stays mounted across
+        // client-side navigations) to refresh its count.
+        window.dispatchEvent(new Event("inquiry-queued"));
+
         const synced = await registerInquirySync();
         if (!synced) {
           startFallbackRetry();
@@ -62,7 +67,10 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
       }
     };
 
-    // If offline, skip fetch and go straight to queue path
+    // `navigator.onLine` is an optimization for the common case — it lets us
+    // skip an obviously-doomed fetch.  It is NOT a reliable connectivity check
+    // (e.g. captive portals report `true`).  The `catch` path below is the
+    // real safety net for network failures.
     if (!navigator.onLine) {
       await enqueueAndRedirect();
       return;
@@ -75,17 +83,23 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "submit");
+
+      if (res.ok) {
+        // Navigate first; the success page mounts a <CartClearer /> which
+        // empties the cart only after CartView has unmounted — no empty-cart
+        // flash.
+        onSuccess?.();
+        router.push("/inquiry/success");
+        return;
       }
-      // Navigate first; the success page mounts a <CartClearer /> which empties
-      // the cart only after CartView has unmounted — no empty-cart flash.
-      onSuccess?.();
-      router.push("/inquiry/success");
-    } catch (err) {
-      console.error(err);
-      // Fetch failed — queue offline and redirect
+
+      // Server returned an error — show it to the user rather than silently
+      // queuing, since 4xx errors (validation, etc.) will never succeed on
+      // replay and would eventually be discarded.
+      setSubmitError(t("errors.generic"));
+    } catch {
+      // fetch() rejected → genuine network / connection failure.  Queue the
+      // inquiry for later replay.
       await enqueueAndRedirect();
     }
   });

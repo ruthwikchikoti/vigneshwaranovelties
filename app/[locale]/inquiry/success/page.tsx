@@ -30,7 +30,7 @@ export default async function InquirySuccessPage({
           </svg>
         </div>
 
-        <p className="smallcaps text-[0.65rem] text-champagne-deep">{isQueued ? "Saved" : "Sent"}</p>
+        <p className="smallcaps text-[0.65rem] text-champagne-deep">{isQueued ? t("statusSaved") : t("statusSent")}</p>
         <h1 className="font-display text-[2.5rem] lg:text-[3.5rem] text-ink leading-tight">
           {t("success")}
         </h1>

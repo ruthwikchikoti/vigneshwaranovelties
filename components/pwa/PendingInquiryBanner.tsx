@@ -3,31 +3,45 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { countPendingInquiries } from "@/lib/inquiry-queue";
-import { listenForSyncMessages } from "@/lib/offline-sync";
+import { listenForSyncMessages, ensureFallbackRetryIfNeeded } from "@/lib/offline-sync";
 
 export function PendingInquiryBanner() {
   const t = useTranslations("inquiry");
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    // Check on mount
-    countPendingInquiries().then(setCount).catch(() => {});
+    const refreshCount = () => {
+      countPendingInquiries().then(setCount).catch(() => {});
+    };
 
-    // Listen for sync completion
+    // Check on mount
+    refreshCount();
+
+    // If there are pending inquiries and Background Sync is unavailable, start
+    // the fallback retry timer so entries from a previous session are replayed.
+    ensureFallbackRetryIfNeeded().catch(() => {});
+
+    // Listen for sync completion (SW or main-thread replay succeeded)
     const unsubscribe = listenForSyncMessages(() => {
-      setCount(0);
+      refreshCount();
     });
 
-    // Also re-check when the tab becomes visible (user may have been away)
+    // Listen for new items being enqueued from InquiryForm — the layout is
+    // preserved across client-side navigations so we can't rely on remount.
+    const onInquiryQueued = () => refreshCount();
+    window.addEventListener("inquiry-queued", onInquiryQueued);
+
+    // Re-check when the tab becomes visible (user may have been away)
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        countPendingInquiries().then(setCount).catch(() => {});
+        refreshCount();
       }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       unsubscribe();
+      window.removeEventListener("inquiry-queued", onInquiryQueued);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
