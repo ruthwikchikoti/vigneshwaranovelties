@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "vitest run",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "admin:create": "tsx scripts/create-admin.ts",
@@ -45,6 +46,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",
+    "vitest": "^4.1.6",
     "wrangler": "^3.91.0"
   }
 }

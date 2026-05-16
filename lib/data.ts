@@ -121,6 +121,35 @@ export async function searchProducts(
 
   return safe(async () => {
     const supabase = await createClient();
+
+    // Use the database RPC that leverages the pg_trgm GIN index for fast,
+    // typo-tolerant search across titles, descriptions, tags, and category
+    // names.  Falls back to ILIKE for very short queries (< 3 chars).
+    const { data: rpcRows, error: rpcError } = await supabase.rpc(
+      "search_products",
+      { query: term, result_limit: limit }
+    );
+
+    if (!rpcError && rpcRows) {
+      // RPC succeeded — empty results means "no matches", which is valid.
+      if (rpcRows.length === 0) return [];
+
+      // The RPC returns flat product rows — hydrate with images & category.
+      const ids = (rpcRows as { id: string }[]).map((r) => r.id);
+      const { data, error } = await supabase
+        .from("products")
+        .select("*, images:product_images(*), category:categories(*)")
+        .in("id", ids);
+      if (error) throw error;
+
+      // Preserve the relevance order returned by the RPC.
+      const byId = new Map((data ?? []).map((p) => [p.id, p]));
+      return ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+    }
+
+    // Fallback: if the RPC is not yet deployed (e.g. migration pending),
+    // use the original ILIKE approach so the app keeps working.
+    console.warn("[search] RPC unavailable, falling back to ILIKE:", rpcError?.message);
     const ilikeArg = `%${term.replace(/[%_]/g, "\\$&")}%`;
     const { data, error } = await supabase
       .from("products")
