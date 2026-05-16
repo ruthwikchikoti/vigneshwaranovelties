@@ -253,8 +253,8 @@ async function encryptPayload(
   const salt = crypto.getRandomValues(new Uint8Array(16));
 
   // 6. Derive CEK (16 bytes) and nonce (12 bytes) via HKDF
-  const cekInfo = encoder.encode("Content-Encoding: aes128gcm\0\x01");
-  const nonceInfo = encoder.encode("Content-Encoding: nonce\0\x01");
+  const cekInfo = encoder.encode("Content-Encoding: aes128gcm\0");
+  const nonceInfo = encoder.encode("Content-Encoding: nonce\0");
 
   const cek = await hkdfDerive(salt, ikm, cekInfo, 16);
   const nonce = await hkdfDerive(salt, ikm, nonceInfo, 12);

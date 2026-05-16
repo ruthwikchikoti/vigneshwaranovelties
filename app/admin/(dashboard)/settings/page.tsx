@@ -1,5 +1,4 @@
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
 import {
   getAnnouncement,
@@ -12,7 +11,7 @@ import { AnnouncementForm } from "@/components/admin/AnnouncementForm";
 import { HeroSettingsForm } from "@/components/admin/HeroSettingsForm";
 import { HomeEditorialForm } from "@/components/admin/HomeEditorialForm";
 
-const PushToggle = dynamic(() => import("@/components/pwa/PushToggle").then(m => m.PushToggle), { ssr: false });
+import { PushToggleWrapper } from "@/components/pwa/PushToggleWrapper";
 
 export const metadata = { title: "Settings · Admin" };
 
@@ -114,7 +113,7 @@ export default async function SettingsPage() {
           Get instant alerts on this device when a customer submits an inquiry.
           Works best with the installed app.
         </p>
-        {vapidReady ? <PushToggle /> : (
+        {vapidReady ? <PushToggleWrapper /> : (
           <p className="text-sm text-ink/75 leading-relaxed">
             Push notifications aren&apos;t set up yet — ask your developer to add VAPID keys.
           </p>

@@ -45,15 +45,28 @@ export function PushToggle() {
       });
 
       const json = sub.toJSON();
-      await fetch("/api/admin/push-subscription", {
+      const p256dh = json.keys?.p256dh;
+      const auth = json.keys?.auth;
+
+      if (!p256dh || !auth) {
+        await sub.unsubscribe();
+        throw new Error("Browser did not provide push encryption keys");
+      }
+
+      const res = await fetch("/api/admin/push-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           endpoint: sub.endpoint,
-          key_p256dh: json.keys?.p256dh,
-          key_auth: json.keys?.auth,
+          key_p256dh: p256dh,
+          key_auth: auth,
         }),
       });
+
+      if (!res.ok) {
+        await sub.unsubscribe();
+        throw new Error(`Server returned ${res.status}`);
+      }
 
       setSubscribed(true);
       setPermission(Notification.permission);
