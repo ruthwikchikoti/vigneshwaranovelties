@@ -26,8 +26,9 @@ function MobileLocaleToggle({ currentLocale }: { currentLocale: "en" | "te" }) {
   const pathname = usePathname();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const tCommon = useTranslations("common");
   const next: "en" | "te" = currentLocale === "en" ? "te" : "en";
-  const aria = next === "te" ? "Switch to Telugu" : "Switch to English";
+  const aria = next === "te" ? tCommon("switchToTelugu") : tCommon("switchToEnglish");
 
   const cellClass = (isActive: boolean) =>
     cn(
@@ -86,6 +87,7 @@ type HeaderProps = {
 
 export function Header({ announcement }: HeaderProps = {}) {
   const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const locale = useLocale() as "en" | "te";
   const cartCount = useCart((s) => s.count());
   const wishlistCount = useWishlist((s) => s.count());
@@ -164,7 +166,7 @@ export function Header({ announcement }: HeaderProps = {}) {
               type="button"
               onClick={() => setOpen(true)}
               className="lg:hidden p-2 -ml-2 text-ink justify-self-start"
-              aria-label="Open menu"
+              aria-label={tCommon("openMenu")}
             >
               <IconMenu />
             </button>
@@ -213,7 +215,7 @@ export function Header({ announcement }: HeaderProps = {}) {
               <Link
                 href="/wishlist"
                 className="relative p-2 text-ink/80 hover:text-ink"
-                aria-label="Saved pieces"
+                aria-label={t("savedPieces")}
               >
                 <HeartIcon />
                 {mountedClient && wishlistCount > 0 ? (
@@ -279,7 +281,7 @@ export function Header({ announcement }: HeaderProps = {}) {
               type="button"
               onClick={() => setOpen(false)}
               className="p-2 text-ink"
-              aria-label="Close menu"
+              aria-label={tCommon("closeMenu")}
             >
               <IconClose />
             </button>

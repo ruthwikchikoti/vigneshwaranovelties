@@ -77,13 +77,13 @@ export function ProductCard({ product, variant = "default", priority }: Props) {
         {/* Badges (top-left) */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {product.is_new_arrival ? (
-            <Badge variant="ivory">New</Badge>
+            <Badge variant="ivory">{t("badgeNew")}</Badge>
           ) : null}
           {product.has_sale_badge && discountPct ? (
             <Badge variant="sale">−{discountPct}%</Badge>
           ) : null}
           {product.has_offer_badge ? (
-            <Badge variant="gold">Offer</Badge>
+            <Badge variant="gold">{t("badgeOffer")}</Badge>
           ) : null}
         </div>
 
@@ -123,7 +123,7 @@ export function ProductCard({ product, variant = "default", priority }: Props) {
 
         {product.stock_status === "sold_out" ? (
           <div className="absolute inset-0 bg-ivory/80 grid place-items-center">
-            <span className="smallcaps text-[0.7rem] text-ink">Sold</span>
+            <span className="smallcaps text-[0.7rem] text-ink">{t("sold")}</span>
           </div>
         ) : null}
       </div>

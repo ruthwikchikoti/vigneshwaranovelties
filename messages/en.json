@@ -40,7 +40,8 @@
     "lineThree": "take home.",
     "subline": "1-gram gold jewelry, German silver, pulse chains and gift articles — picked by our family for yours.",
     "ctaPrimary": "Browse all",
-    "ctaSecondary": "Chat on WhatsApp"
+    "ctaSecondary": "Chat on WhatsApp",
+    "showBanner": "Show banner {current} of {total}"
   },
   "sections": {
     "seeAll": "See all",
@@ -67,8 +68,12 @@
     "editorialBody": "Vigneshwara Novelties is a family-run showroom in Cherial, Telangana — with more than 20 years in the business. We pick 1-gram gold jewelry, German silver, pulse chains and gift articles ourselves, and explain everything in simple words. Visit us, or just message on WhatsApp.",
     "editorialCta": "Our story",
     "recentlyViewed": "Pick up where you left off",
+    "recentlyViewedEyebrow": "For you",
     "collection": "Collection",
-    "explore": "Explore"
+    "explore": "Explore",
+    "continueBrowsing": "Continue browsing",
+    "youMayAlsoLove": "You may also love",
+    "otherCollections": "Other collections"
   },
   "product": {
     "addToInquiry": "Add to Cart",
@@ -79,9 +84,13 @@
     "in_stock": "Available",
     "made_to_order": "Made on order",
     "sold_out": "Out of stock",
+    "sold": "Sold",
     "originalPrice": "Was",
     "youSave": "You save",
     "share": "Share",
+    "shareThisPiece": "Share this piece",
+    "copied": "✓ Copied",
+    "copyLink": "Copy link",
     "specifications": "Details",
     "description": "Description",
     "category": "Category",
@@ -91,7 +100,12 @@
     "viewAll": "See all",
     "price": "Price",
     "from": "from",
-    "inquire": "Inquire"
+    "inquire": "Inquire",
+    "badgeNew": "New",
+    "badgeTrending": "Trending",
+    "badgeOffer": "Offer",
+    "allCurated": "All curated",
+    "viewImage": "View image {number}"
   },
   "cart": {
     "title": "Your Cart",
@@ -103,7 +117,9 @@
     "subtotal": "Estimated Total",
     "subtotalNote": "Final price confirmed by our team on call or WhatsApp.",
     "submitInquiry": "Send Order",
-    "continueShopping": "Continue browsing"
+    "continueShopping": "Continue browsing",
+    "decrease": "Decrease",
+    "increase": "Increase"
   },
   "inquiry": {
     "title": "Send your order",
@@ -122,6 +138,10 @@
     "successDetail": "We got your order. Our team will WhatsApp or call you soon.",
     "openWhatsapp": "Continue on WhatsApp",
     "backHome": "Back to home",
+    "sent": "Sent",
+    "fastReplyHint": "For the fastest reply, send us a quick WhatsApp now — we'll match it to your inquiry and confirm details.",
+    "confirmWhatsapp": "Confirm on WhatsApp",
+    "orCall": "Or call {phone}",
     "errors": {
       "name": "Please share your name",
       "mobile": "Please enter a valid 10-digit mobile",
@@ -131,8 +151,11 @@
   "offers": {
     "title": "Offers",
     "subtitle": "Limited time savings from our family.",
+    "eyebrow": "Limited time",
     "ends": "Ends",
-    "off": "off"
+    "off": "off",
+    "limited": "Limited",
+    "discover": "Discover"
   },
   "about": {
     "title": "About Vigneshwara Novelties",
@@ -153,6 +176,9 @@
     "whatsappUs": "Message on WhatsApp",
     "address": "Address",
     "hours": "Hours",
+    "hoursLabel": "Open all 7 days",
+    "hoursRange": "10:00 AM — 8:00 PM",
+    "addressLine3": "opposite Keerthi Mess",
     "eyebrow": "Reach us"
   },
   "footer": {
@@ -184,9 +210,15 @@
     "back": "Back",
     "close": "Close",
     "more": "More",
-    "less": "Less"
+    "less": "Less",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "switchToTelugu": "Switch to Telugu",
+    "switchToEnglish": "Switch to English",
+    "pagination": "Pagination"
   },
   "wishlist": {
+    "metaTitle": "Saved pieces",
     "eyebrow": "Saved pieces",
     "emptyTitle": "Nothing saved yet.",
     "emptyBody": "Tap the heart on any piece to save it here for later.",
@@ -195,15 +227,24 @@
     "added": "Added",
     "inquire": "Inquire",
     "remove": "Remove",
-    "removeLabel": "Remove from saved"
+    "removeLabel": "Remove from saved",
+    "saveLabel": "Save this piece",
+    "saved": "Saved",
+    "save": "Save",
+    "pieces": "{count} piece",
+    "piecesPlural": "{count} pieces"
   },
   "search": {
+    "metaTitle": "Search",
     "eyebrow": "Search",
     "title": "Find a piece",
     "resultsFor": "Results for",
     "noMatchTitle": "Nothing matches that yet.",
     "noMatchBody": "Try a different word, browse a collection, or message us on WhatsApp — we can tell you whether the piece is available in the showroom.",
     "hint": "Type a piece name, material (silver, gold, brass), or occasion (wedding, festive) to look up the catalogue.",
+    "placeholder": "Try 'pulse chain', 'german silver', 'pendant'…",
+    "clear": "Clear",
+    "submit": "Search",
     "pieces": "{count} piece",
     "piecesPlural": "{count} pieces"
   },
@@ -214,6 +255,7 @@
     "cta": "Return home"
   },
   "faq": {
+    "metaTitle": "FAQ",
     "eyebrow": "Help",
     "title": "FAQ",
     "titleTe": "తరచుగా అడిగే ప్రశ్నలు",

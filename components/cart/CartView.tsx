@@ -80,7 +80,7 @@ export function CartView() {
                         setQty(item.product_id, Math.max(1, item.qty - 1))
                       }
                       className="w-8 h-8 grid place-items-center text-ink/70 hover:text-ink"
-                      aria-label="Decrease"
+                      aria-label={t("decrease")}
                     >
                       −
                     </button>
@@ -89,7 +89,7 @@ export function CartView() {
                       type="button"
                       onClick={() => setQty(item.product_id, item.qty + 1)}
                       className="w-8 h-8 grid place-items-center text-ink/70 hover:text-ink"
-                      aria-label="Increase"
+                      aria-label={t("increase")}
                     >
                       +
                     </button>

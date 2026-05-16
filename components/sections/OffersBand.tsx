@@ -54,7 +54,7 @@ export function OffersBand({ offers, categories = [] }: Props) {
                   </span>
                 ) : (
                   <span className="smallcaps text-[0.6rem] text-champagne">
-                    Limited
+                    {t("limited")}
                   </span>
                 )}
               </div>
@@ -66,7 +66,7 @@ export function OffersBand({ offers, categories = [] }: Props) {
                   <p className="text-ivory/70 text-[0.9rem] mt-2 max-w-md">{desc}</p>
                 ) : null}
                 <span className="inline-flex items-center gap-2 smallcaps text-[0.65rem] mt-5 text-champagne group-hover:gap-3 transition-all">
-                  Discover
+                  {t("discover")}
                   <IconArrowRight />
                 </span>
               </div>
