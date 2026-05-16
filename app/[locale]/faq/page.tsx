@@ -1,4 +1,4 @@
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Container } from "@/components/ui/Container";
 import { getCmsPage } from "@/lib/admin/cms";
 import { pickCmsTitle, pickCmsBody, parseFaq, renderCmsBody } from "@/lib/cms-render";
@@ -14,6 +14,7 @@ export default async function FaqPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const localeKey = locale as "en" | "te";
+  const t = await getTranslations("faq");
   const cms = await getCmsPage("faq");
   const cmsTitle = pickCmsTitle(cms, localeKey);
   const cmsBody = pickCmsBody(cms, localeKey);
@@ -21,21 +22,18 @@ export default async function FaqPage({
   const bodyText = cmsBody ?? "";
   const parsed = parseFaq(bodyText);
   const items = parsed.length > 0 ? parsed : null;
-  const fallbackTitle = localeKey === "te" ? "తరచుగా అడిగే ప్రశ్నలు" : "FAQ";
   const hasContent = Boolean(items || bodyText.trim());
 
   return (
     <Container size="md" className="py-16 lg:py-24">
-      <p className="smallcaps text-[0.65rem] text-champagne-deep mb-4">Help</p>
+      <p className="smallcaps text-[0.65rem] text-champagne-deep mb-4">{t("eyebrow")}</p>
       <h1 className="font-display text-[2.5rem] lg:text-[3.75rem] text-ink leading-tight mb-10">
-        {cmsTitle ?? fallbackTitle}
+        {cmsTitle ?? t("title")}
       </h1>
 
       {!hasContent ? (
         <p className="text-ink/65 text-[1.02rem] leading-relaxed max-w-lg">
-          {localeKey === "te"
-            ? "ఇంకా ప్రశ్నలు జోడించబడలేదు. త్వరలో తిరిగి చూడండి లేదా వాట్సాప్‌లో మమ్మల్ని సంప్రదించండి."
-            : "No questions have been published yet. Check back soon, or message us on WhatsApp below."}
+          {t("empty")}
         </p>
       ) : items ? (
         <ul className="flex flex-col divide-y divide-ink/10 border-y border-ink/10">
@@ -65,12 +63,10 @@ export default async function FaqPage({
 
       <div className="mt-12 lg:mt-16 p-6 lg:p-8 bg-mist-soft border border-ink/10">
         <p className="font-display text-[1.4rem] text-ink mb-2">
-          {localeKey === "te" ? "మీ ప్రశ్నకు సమాధానం దొరకలేదా?" : "Didn't find your answer?"}
+          {t("noAnswerTitle")}
         </p>
         <p className="text-sm text-ink/65 mb-4 max-w-md">
-          {localeKey === "te"
-            ? "మాకు వాట్సాప్ సందేశం పంపండి — మేము సాధారణంగా కొన్ని గంటల్లో సమాధానం ఇస్తాము."
-            : "Send us a WhatsApp message — we usually reply within a few hours."}
+          {t("noAnswerBody")}
         </p>
         <a
           href={`https://wa.me/${site.whatsappNumber}`}
@@ -78,7 +74,7 @@ export default async function FaqPage({
           rel="noopener noreferrer"
           className="btn-base btn-whatsapp"
         >
-          {localeKey === "te" ? "వాట్సాప్‌లో చాట్ చేయండి" : "Chat on WhatsApp"}
+          {t("whatsappCta")}
         </a>
       </div>
 
