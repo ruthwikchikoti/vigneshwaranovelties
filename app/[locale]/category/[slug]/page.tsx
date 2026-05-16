@@ -68,7 +68,7 @@ export default async function CategoryPage({ params }: PageProps) {
         <Container size="xl">
           <div className="flex justify-between items-center mb-10">
             <p className="text-ink/60 text-sm tabular">
-              {tShop("countLabel", { count: products.length })}
+              {products.length === 1 ? tShop("countLabel", { count: products.length }) : tShop("countLabelPlural", { count: products.length })}
             </p>
             <p className="smallcaps text-[0.6rem] text-ink/50">{t("allCurated")}</p>
           </div>

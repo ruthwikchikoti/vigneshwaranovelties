@@ -97,7 +97,7 @@ export default async function ShopPage({ params, searchParams }: PageProps) {
       ) : (
         <>
           <p className="text-xs sm:text-sm text-ink/55 mb-6 sm:mb-8 tabular">
-            {t("countLabel", { count: total })}
+            {total === 1 ? t("countLabel", { count: total }) : t("countLabelPlural", { count: total })}
           </p>
           <ProductGrid products={products} cols={4} priorityCount={8} />
           <CatalogPagination

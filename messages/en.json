@@ -28,7 +28,8 @@
     "emptyTitle": "Catalogue coming soon",
     "emptyBody": "We are still adding pieces to the website. WhatsApp us and we can share photos and availability from the showroom.",
     "emptyCta": "WhatsApp us",
-    "countLabel": "{count} pieces",
+    "countLabel": "{count} piece",
+    "countLabelPlural": "{count} pieces",
     "prev": "Previous",
     "next": "Next",
     "pageOf": "Page {current} of {total}"

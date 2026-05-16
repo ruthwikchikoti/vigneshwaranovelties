@@ -7,6 +7,7 @@ import { site } from "@/lib/site";
 export function Footer() {
   const tn = useTranslations("nav");
   const tf = useTranslations("footer");
+  const tc = useTranslations("contact");
 
   return (
     <footer className="bg-ink-panel text-on-ink-2 mt-24 lg:mt-32">
@@ -50,7 +51,7 @@ export function Footer() {
                 <li><a href={`mailto:${site.ownerEmail}`} className="opacity-80 hover:opacity-100 transition-opacity">{site.ownerEmail}</a></li>
                 <li className="opacity-80">{site.address.line2}</li>
                 <li className="opacity-80">{site.address.city}</li>
-                <li className="opacity-80">{site.hours.label} · {site.hours.range}</li>
+                <li className="opacity-80">{tc("hoursLabel")} · {tc("hoursRange")}</li>
               </ul>
             </div>
           </div>
