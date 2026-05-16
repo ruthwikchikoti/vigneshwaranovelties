@@ -53,7 +53,7 @@ export function WishlistView() {
         {t("title")}
       </h1>
       <p className="text-ink/55 text-sm mb-10 tabular">
-        {items.length} {items.length === 1 ? "piece" : "pieces"}
+        {items.length === 1 ? t("pieces", { count: items.length }) : t("piecesPlural", { count: items.length })}
       </p>
 
       <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">

@@ -16,6 +16,7 @@ type Props = {
 export function CategoryStrip({ categories, offers = [] }: Props) {
   const locale = useLocale() as "en" | "te";
   const t = useTranslations("sections");
+  const tOffers = useTranslations("offers");
   const offerByCategory = liveOffersByCategory(offers);
 
   return (
@@ -44,7 +45,7 @@ export function CategoryStrip({ categories, offers = [] }: Props) {
 
               {discountPct ? (
                 <span className="absolute top-4 left-4 z-[1] bg-vermilion text-on-ink smallcaps text-[0.6rem] tracking-[0.18em] px-2.5 py-1.5 shadow-sm">
-                  {discountPct}% off
+                  {`${discountPct}% ${tOffers("off")}`}
                 </span>
               ) : null}
 

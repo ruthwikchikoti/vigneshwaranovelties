@@ -47,6 +47,8 @@ export default async function ProductPage({ params }: PageProps) {
   const product = applyCategoryOffer(rawProduct, offers);
 
   const t = await getTranslations("product");
+  const tSections = await getTranslations("sections");
+  const tNav = await getTranslations("nav");
   const localeKey = locale as "en" | "te";
   const title = localize(product, localeKey, "title");
   const description = localize(product, localeKey, "description");
@@ -84,7 +86,7 @@ export default async function ProductPage({ params }: PageProps) {
       <Container size="xl" className="pt-6 lg:pt-12 pb-32 lg:pb-20">
         {/* Breadcrumbs */}
         <nav className="text-xs text-ink/50 mb-6 flex items-center gap-2">
-          <Link href="/" className="hover:text-ink transition-colors">Home</Link>
+          <Link href="/" className="hover:text-ink transition-colors">{tNav("home")}</Link>
           <span>/</span>
           {product.category && (
             <>
@@ -115,8 +117,8 @@ export default async function ProductPage({ params }: PageProps) {
 
             {/* Badges */}
             <div className="flex gap-2 flex-wrap -mt-2">
-              {product.is_new_arrival && <Badge variant="ink">New</Badge>}
-              {product.is_trending && <Badge variant="outline">Trending</Badge>}
+              {product.is_new_arrival && <Badge variant="ink">{t("badgeNew")}</Badge>}
+              {product.is_trending && <Badge variant="outline">{t("badgeTrending")}</Badge>}
               {product.has_sale_badge && discountPct ? (
                 <Badge variant="sale">−{discountPct}%</Badge>
               ) : null}
@@ -202,8 +204,8 @@ export default async function ProductPage({ params }: PageProps) {
         <section className="py-20 lg:py-28 border-t border-ink/10 bg-mist-soft">
           <Container size="xl">
             <SectionHeader
-              eyebrow="Continue browsing"
-              title="You may also love"
+              eyebrow={tSections("continueBrowsing")}
+              title={tSections("youMayAlsoLove")}
               align="left"
             />
             <div className="mt-12">

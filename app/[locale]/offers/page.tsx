@@ -15,7 +15,7 @@ export default async function OffersPage({
 
   return (
     <Container size="xl" className="py-16 lg:py-28">
-      <p className="smallcaps text-[0.65rem] text-champagne-deep mb-4">Limited time</p>
+      <p className="smallcaps text-[0.65rem] text-champagne-deep mb-4">{t("eyebrow")}</p>
       <h1 className="font-display text-[2.25rem] sm:text-[3rem] lg:text-[4.5rem] text-ink leading-tight mb-4">
         {t("title")}
       </h1>

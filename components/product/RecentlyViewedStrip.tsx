@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { useRecentlyViewed } from "@/lib/recently-viewed-store";
 import { ikImage } from "@/lib/imagekit";
 import { formatINR } from "@/lib/format";
@@ -14,7 +15,8 @@ type Props = {
   title?: string;
 };
 
-export function RecentlyViewedStrip({ excludeId, title = "Recently viewed" }: Props) {
+export function RecentlyViewedStrip({ excludeId, title }: Props) {
+  const t = useTranslations("sections");
   const all = useRecentlyViewed((s) => s.items);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -30,9 +32,9 @@ export function RecentlyViewedStrip({ excludeId, title = "Recently viewed" }: Pr
       <div className="mx-auto w-full max-w-[88rem] px-5 sm:px-8 lg:px-12">
         <div className="flex items-end justify-between mb-4 lg:mb-6">
           <div>
-            <p className="smallcaps text-[0.55rem] text-champagne-deep">For you</p>
+            <p className="smallcaps text-[0.55rem] text-champagne-deep">{t("recentlyViewedEyebrow")}</p>
             <h2 className="font-display text-[1.2rem] lg:text-[1.5rem] text-ink leading-tight mt-1">
-              {title}
+              {title ?? t("recentlyViewed")}
             </h2>
           </div>
         </div>

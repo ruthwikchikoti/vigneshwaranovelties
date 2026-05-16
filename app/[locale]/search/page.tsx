@@ -5,12 +5,16 @@ import { searchProducts, getOffers } from "@/lib/data";
 import { SearchInput } from "@/components/search/SearchInput";
 import { applyCategoryOffers } from "@/lib/offers";
 
-export const metadata = { title: "Search" };
-
 type PageProps = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string }>;
 };
+
+export async function generateMetadata({ params }: PageProps) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "search" });
+  return { title: t("metaTitle") };
+}
 
 export default async function SearchPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
@@ -43,7 +47,7 @@ export default async function SearchPage({ params, searchParams }: PageProps) {
         ) : (
           <div className="mt-10 lg:mt-14">
             <p className="text-xs text-ink/55 mb-6 tabular">
-              {products.length} {products.length === 1 ? "piece" : "pieces"}
+              {products.length === 1 ? t("pieces", { count: products.length }) : t("piecesPlural", { count: products.length })}
             </p>
             <ProductGrid products={products} cols={4} />
           </div>

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ikImage, placeholderImage } from "@/lib/imagekit";
 import type { ProductImage } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function ProductGallery({ images, alt }: Props) {
+  const t = useTranslations("product");
   const [active, setActive] = useState(0);
   const fallback: ProductImage = {
     id: "ph",
@@ -39,7 +41,7 @@ export function ProductGallery({ images, alt }: Props) {
               "relative flex-shrink-0 w-16 lg:w-full aspect-square overflow-hidden bg-mist transition-all",
               active === i ? "ring-1 ring-ink opacity-100" : "opacity-50 hover:opacity-100"
             )}
-            aria-label={`View image ${i + 1}`}
+            aria-label={t("viewImage", { number: i + 1 })}
           >
             <Image
               src={ikImage(img.original_url, { width: 200, format: "auto" })}

@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 
 export function ProductActions({ product }: { product: Product }) {
   const t = useTranslations("product");
+  const tNav = useTranslations("nav");
   const locale = useLocale() as "en" | "te";
   const cart = useCart();
   const [open, setOpen] = useState(false);
@@ -98,7 +99,7 @@ export function ProductActions({ product }: { product: Product }) {
           className="btn-base btn-whatsapp text-[0.7rem] py-3"
         >
           <IconWhatsapp size={14} />
-          WhatsApp
+          {tNav("whatsapp")}
         </a>
         <Button
           variant="ink"

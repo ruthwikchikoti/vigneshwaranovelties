@@ -61,6 +61,7 @@ export default async function ShopPage({ params, searchParams }: PageProps) {
   products = applyCategoryOffers(products, offers);
 
   const t = await getTranslations("shop");
+  const tCommon = await getTranslations("common");
 
   return (
     <Container size="xl" className="py-12 sm:py-16 lg:py-24">
@@ -96,7 +97,7 @@ export default async function ShopPage({ params, searchParams }: PageProps) {
       ) : (
         <>
           <p className="text-xs sm:text-sm text-ink/55 mb-6 sm:mb-8 tabular">
-            {t("countLabel", { count: total })}
+            {total === 1 ? t("countLabel", { count: total }) : t("countLabelPlural", { count: total })}
           </p>
           <ProductGrid products={products} cols={4} priorityCount={8} />
           <CatalogPagination
@@ -106,6 +107,7 @@ export default async function ShopPage({ params, searchParams }: PageProps) {
             prevLabel={t("prev")}
             nextLabel={t("next")}
             pageLabel={(current, tot) => t("pageOf", { current, total: tot })}
+            paginationLabel={tCommon("pagination")}
           />
         </>
       )}

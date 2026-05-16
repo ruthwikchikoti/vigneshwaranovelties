@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { IconWhatsapp } from "@/components/ui/IconWhatsapp";
 
@@ -12,6 +13,8 @@ type Props = {
 };
 
 export function ShareProduct({ title, slug, price, locale }: Props) {
+  const t = useTranslations("product");
+  const tNav = useTranslations("nav");
   const [copied, setCopied] = useState(false);
 
   const url =
@@ -63,7 +66,7 @@ export function ShareProduct({ title, slug, price, locale }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="smallcaps text-[0.55rem] text-ink/50">Share this piece</p>
+      <p className="smallcaps text-[0.55rem] text-ink/50">{t("shareThisPiece")}</p>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
@@ -71,7 +74,7 @@ export function ShareProduct({ title, slug, price, locale }: Props) {
           className={cn(btnClass, "border-[#25D366]/40 hover:bg-[#25D366]/5 hover:border-[#25D366]")}
         >
           <IconWhatsapp size={14} />
-          WhatsApp
+          {tNav("whatsapp")}
         </button>
         <button
           type="button"
@@ -83,7 +86,7 @@ export function ShareProduct({ title, slug, price, locale }: Props) {
               : "border-ink/15 hover:border-ink"
           )}
         >
-          {copied ? "✓ Copied" : "Copy link"}
+          {copied ? t("copied") : t("copyLink")}
         </button>
       </div>
     </div>
