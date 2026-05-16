@@ -62,11 +62,14 @@ export async function POST(req: Request) {
   // 2. Fire-and-forget the notification email. Failures are logged and
   // surfaced in the response so admins can spot misconfiguration, but they
   // never block the customer — the inquiry is already persisted.
-  const emailResult = await sendInquiryEmail(inquiry);
-
-  // 3. Push notification to admin devices (best-effort, like email).
   const itemCount = inquiry.items.reduce((s, i) => s + i.qty, 0);
-  await notifyAdminsPush({ customer_name: inquiry.customer_name, item_count: itemCount });
+
+  // 3. Push notification to admin devices — truly fire-and-forget so a
+  //    slow / unreachable push service never delays the customer response.
+  notifyAdminsPush({ customer_name: inquiry.customer_name, item_count: itemCount })
+    .catch((err) => console.error("[push] unexpected:", err));
+
+  const emailResult = await sendInquiryEmail(inquiry);
 
   return NextResponse.json({ ok: true, email: emailResult });
 }

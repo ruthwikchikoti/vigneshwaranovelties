@@ -25,6 +25,9 @@ export async function notifyAdminsPush(inquiry: InquirySummary): Promise<void> {
       return;
     }
 
+    // Service-role client is required here: it bypasses RLS so we can read
+    // all subscriptions for broadcast delivery. The anon client would return
+    // zero rows because the RLS policy scopes to auth.uid().
     const supabase = createServiceClient();
     const { data: subscriptions, error } = await supabase
       .from("push_subscriptions")

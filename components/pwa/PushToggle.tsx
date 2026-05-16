@@ -38,6 +38,19 @@ export function PushToggle() {
   async function enable() {
     setLoading(true);
     try {
+      // Explicitly request permission from user gesture — not all browsers
+      // trigger the prompt automatically from pushManager.subscribe().
+      const nextPermission =
+        Notification.permission === "default"
+          ? await Notification.requestPermission()
+          : Notification.permission;
+
+      setPermission(nextPermission);
+
+      if (nextPermission !== "granted") {
+        throw new Error("Notification permission not granted");
+      }
+
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,

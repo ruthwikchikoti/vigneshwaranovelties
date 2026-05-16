@@ -36,7 +36,8 @@ function buf(data: Uint8Array): Uint8Array<ArrayBuffer> {
 
 // ─── Base64url helpers ──────────────────────────────────────────────────
 
-function base64urlEncode(buffer: ArrayBuffer | Uint8Array): string {
+/** @internal Exported for testing. */
+export function base64urlEncode(buffer: ArrayBuffer | Uint8Array): string {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   let binary = "";
   for (let i = 0; i < bytes.length; i++) {
@@ -45,7 +46,8 @@ function base64urlEncode(buffer: ArrayBuffer | Uint8Array): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function base64urlDecode(str: string): Uint8Array<ArrayBuffer> {
+/** @internal Exported for testing. */
+export function base64urlDecode(str: string): Uint8Array<ArrayBuffer> {
   // Restore standard base64 characters
   let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
   // Add padding
@@ -130,7 +132,8 @@ async function generateVapidJwt(
  * Ensure the ECDSA signature is in raw r||s format (64 bytes).
  * Web Crypto on some platforms returns DER encoding; convert if needed.
  */
-function ensureRawSignature(sig: Uint8Array): Uint8Array {
+/** @internal Exported for testing. */
+export function ensureRawSignature(sig: Uint8Array): Uint8Array {
   // If already 64 bytes, it's raw
   if (sig.length === 64) return sig;
 
@@ -325,7 +328,7 @@ export async function sendWebPush(
       signal: AbortSignal.timeout(5000),
     });
 
-    if (response.ok || response.status === 201) {
+    if (response.ok) {
       return { success: true, status: response.status };
     }
 

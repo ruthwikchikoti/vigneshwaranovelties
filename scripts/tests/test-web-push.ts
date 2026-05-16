@@ -27,68 +27,6 @@ Module._load = function (request: string, ...args: unknown[]) {
   return originalLoad.call(this, request, ...args);
 };
 
-// ── We need to extract the internal helpers for testing.
-// Since they're not exported, we re-implement them here and verify
-// they match the behavior of the module. For sendWebPush we test
-// the exported function directly.
-
-// ─── base64url helpers (mirrored from lib/web-push.ts) ──────────
-
-function base64urlEncode(buffer: ArrayBuffer | Uint8Array): string {
-  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function base64urlDecode(str: string): Uint8Array {
-  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
-  while (base64.length % 4 !== 0) {
-    base64 += "=";
-  }
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-}
-
-// ─── ensureRawSignature (mirrored from lib/web-push.ts) ─────────
-
-function ensureRawSignature(sig: Uint8Array): Uint8Array {
-  if (sig.length === 64) return sig;
-
-  if (sig[0] !== 0x30) {
-    throw new Error("Unexpected ECDSA signature format");
-  }
-
-  let offset = 2;
-
-  if (sig[offset] !== 0x02) throw new Error("Expected integer tag for r");
-  offset++;
-  const rLen = sig[offset];
-  offset++;
-  let r = sig.slice(offset, offset + rLen);
-  offset += rLen;
-
-  if (sig[offset] !== 0x02) throw new Error("Expected integer tag for s");
-  offset++;
-  const sLen = sig[offset];
-  offset++;
-  let s = sig.slice(offset, offset + sLen);
-
-  if (r.length === 33 && r[0] === 0) r = r.slice(1);
-  if (s.length === 33 && s[0] === 0) s = s.slice(1);
-
-  const raw = new Uint8Array(64);
-  raw.set(r, 32 - r.length);
-  raw.set(s, 64 - s.length);
-  return raw;
-}
-
 // ─── Tests ──────────────────────────────────────────────────────
 
 let passed = 0;
@@ -109,6 +47,15 @@ function test(name: string, fn: () => void | Promise<void>) {
 }
 
 async function run() {
+  // Import helpers directly from the module (they're exported for testing).
+  // Dynamic import so it runs after the server-only mock is registered above.
+  const {
+    base64urlEncode,
+    base64urlDecode,
+    ensureRawSignature,
+    sendWebPush,
+  } = await import("../../lib/web-push.js");
+
   console.log("\n=== web-push unit tests ===\n");
 
   // ── base64url roundtrip ──
@@ -322,9 +269,6 @@ async function run() {
     };
 
     try {
-      // Import and call sendWebPush
-      const { sendWebPush } = await import("../../lib/web-push.js");
-
       const result = await sendWebPush(
         {
           endpoint: "https://fcm.googleapis.com/fcm/send/test-subscription-id",

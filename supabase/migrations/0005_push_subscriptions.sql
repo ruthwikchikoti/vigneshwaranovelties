@@ -9,6 +9,9 @@ create table public.push_subscriptions (
 
 alter table public.push_subscriptions enable row level security;
 
--- Only authenticated admins can manage their own subscriptions
+-- Only authenticated admins can manage their own subscriptions via the anon/authed client.
+-- NOTE: broadcast reads in notifyAdminsPush() use the service-role client, which
+-- bypasses RLS entirely. Do not switch that code path to the anon client without
+-- adding a separate SELECT policy.
 create policy "admin manage own push_subscriptions" on public.push_subscriptions
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

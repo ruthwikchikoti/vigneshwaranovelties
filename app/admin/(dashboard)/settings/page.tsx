@@ -26,7 +26,10 @@ export default async function SettingsPage() {
       process.env.BREVO_FROM_EMAIL &&
       process.env.INQUIRY_NOTIFICATION_EMAIL
   );
-  const vapidReady = Boolean(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+  const vapidReady = Boolean(
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
+      process.env.VAPID_PRIVATE_KEY
+  );
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">

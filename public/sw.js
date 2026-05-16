@@ -1,3 +1,5 @@
+"use strict";
+
 /* Vigneshwara Novelties - offline + push service worker.
  *
  * What it does:
@@ -143,8 +145,7 @@ self.addEventListener("notificationclick", (event) => {
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
         if (client.url.includes("/admin") && "focus" in client) {
-          client.navigate(url);
-          return client.focus();
+          return client.navigate(url).then(() => client.focus());
         }
       }
       return clients.openWindow(url);
