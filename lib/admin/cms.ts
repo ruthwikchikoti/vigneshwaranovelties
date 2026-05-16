@@ -1,5 +1,6 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/server";
+import { cachedQuery, CACHE_TAGS } from "@/lib/cache";
 import type { CmsPage } from "@/lib/supabase/types";
 
 export const CMS_PAGE_SLUGS = ["about", "contact", "faq", "terms", "privacy"] as const;
@@ -25,17 +26,23 @@ const isConfigured = () =>
 export async function getCmsPage(slug: CmsPageSlug): Promise<CmsPage | null> {
   if (!isConfigured()) return null;
   try {
-    const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from("cms_pages")
-      .select("*")
-      .eq("slug", slug)
-      .maybeSingle();
-    if (error) {
-      console.error("[cms] read:", error);
-      return null;
-    }
-    return (data as CmsPage) ?? null;
+    return await cachedQuery(
+      async () => {
+        const supabase = createServiceClient();
+        const { data, error } = await supabase
+          .from("cms_pages")
+          .select("*")
+          .eq("slug", slug)
+          .maybeSingle();
+        if (error) {
+          console.error("[cms] read:", error);
+          return null;
+        }
+        return (data as CmsPage) ?? null;
+      },
+      ["getCmsPage", slug],
+      [CACHE_TAGS.cms],
+    );
   } catch (err) {
     console.error("[cms] read exception:", err);
     return null;

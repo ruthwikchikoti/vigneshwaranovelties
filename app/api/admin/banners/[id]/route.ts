@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { bannerPayloadSchema } from "@/lib/validations/category";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -22,6 +23,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const supabase = createServiceClient();
     const { error } = await supabase.from("banners").update(clean(parsed.data)).eq("id", id);
     if (error) throw error;
+    revalidateCache(CACHE_TAGS.banners);
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ error: "db", message: err instanceof Error ? err.message : String(err) }, { status: 500 });
@@ -36,6 +38,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const supabase = createServiceClient();
     const { error } = await supabase.from("banners").delete().eq("id", id);
     if (error) throw error;
+    revalidateCache(CACHE_TAGS.banners);
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ error: "db", message: err instanceof Error ? err.message : String(err) }, { status: 500 });

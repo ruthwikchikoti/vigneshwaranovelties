@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -50,6 +51,9 @@ export async function PATCH(req: Request) {
     const firstError = results.find((r) => r.error)?.error;
     if (firstError) throw firstError;
 
+    revalidateCache(CACHE_TAGS[table as keyof typeof CACHE_TAGS]);
+    // Product queries join category data, so category reorders also stale product caches.
+    if (table === "categories") revalidateCache(CACHE_TAGS.products);
     return NextResponse.json({ ok: true, count: items.length });
   } catch (err) {
     console.error(`[admin] reorder ${table}:`, err);

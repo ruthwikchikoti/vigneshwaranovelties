@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { productPayloadSchema } from "@/lib/validations/product";
 import { slugify } from "@/lib/utils";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -43,6 +44,7 @@ export async function POST(req: Request) {
       if (imgErr) throw imgErr;
     }
 
+    revalidateCache(CACHE_TAGS.products);
     return NextResponse.json({ ok: true, id: row.id });
   } catch (err) {
     console.error("[admin] product create:", err);

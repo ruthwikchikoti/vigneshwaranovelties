@@ -1,5 +1,6 @@
 import "server-only";
-import { createClient } from "./supabase/server";
+import { createServiceClient } from "./supabase/server";
+import { cachedQuery, CACHE_TAGS } from "./cache";
 import type { Banner, Category, Offer, Product } from "./supabase/types";
 
 function isSupabaseConfigured(): boolean {
@@ -22,40 +23,53 @@ const emptyCategories: Category[] = [];
 const emptyOffers: Offer[] = [];
 const emptyBanners: Banner[] = [];
 
-export async function getCategories(): Promise<Category[]> {
-  return safe(async () => {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order");
-    if (error) throw error;
-    return (data ?? []) as Category[];
-  }, emptyCategories);
+export function getCategories(): Promise<Category[]> {
+  return safe(
+    () =>
+      cachedQuery(
+        async () => {
+          const supabase = createServiceClient();
+          const { data, error } = await supabase
+            .from("categories")
+            .select("*")
+            .eq("is_active", true)
+            .order("sort_order");
+          if (error) throw error;
+          return (data ?? []) as Category[];
+        },
+        ["getCategories"],
+        [CACHE_TAGS.categories],
+      ),
+    emptyCategories,
+  );
 }
 
-export async function getCategoryBySlug(slug: string): Promise<Category | null> {
+export function getCategoryBySlug(slug: string): Promise<Category | null> {
   return safe<Category | null>(
-    async () => {
-      const supabase = await createClient();
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .single();
-      if (error) throw error;
-      return data as Category;
-    },
-    null
+    () =>
+      cachedQuery(
+        async () => {
+          const supabase = createServiceClient();
+          const { data, error } = await supabase
+            .from("categories")
+            .select("*")
+            .eq("slug", slug)
+            .eq("is_active", true)
+            .single();
+          if (error) throw error;
+          return data as Category;
+        },
+        ["getCategoryBySlug", slug],
+        [CACHE_TAGS.categories],
+      ),
+    null,
   );
 }
 
 /** Default page size for the full-catalog /shop route. */
 export const SHOP_PAGE_SIZE = 24;
 
-export async function getAllProductsPaginated(options: {
+export function getAllProductsPaginated(options: {
   page: number;
   pageSize?: number;
 }): Promise<{ products: Product[]; total: number }> {
@@ -65,54 +79,67 @@ export async function getAllProductsPaginated(options: {
   const to = from + pageSize - 1;
 
   return safe(
-    async () => {
-      const supabase = await createClient();
-      const { data, error, count } = await supabase
-        .from("products")
-        .select("*, images:product_images(*), category:categories(*)", { count: "exact" })
-        .eq("is_active", true)
-        .order("sort_order")
-        .range(from, to);
-      if (error) throw error;
-      return {
-        products: (data ?? []) as Product[],
-        total: count ?? 0,
-      };
-    },
-    { products: [], total: 0 }
+    () =>
+      cachedQuery(
+        async () => {
+          const supabase = createServiceClient();
+          const { data, error, count } = await supabase
+            .from("products")
+            .select("*, images:product_images(*), category:categories(*)", { count: "exact" })
+            .eq("is_active", true)
+            .order("sort_order")
+            .range(from, to);
+          if (error) throw error;
+          return {
+            products: (data ?? []) as Product[],
+            total: count ?? 0,
+          };
+        },
+        ["getAllProductsPaginated", String(page), String(pageSize)],
+        [CACHE_TAGS.products],
+      ),
+    { products: [], total: 0 },
   );
 }
 
-export async function getProducts(
+export function getProducts(
   options: {
     categoryId?: string;
     featured?: boolean;
     trending?: boolean;
     newArrival?: boolean;
     limit?: number;
-  } = {}
+  } = {},
 ): Promise<Product[]> {
-  return safe(async () => {
-    const supabase = await createClient();
-    let query = supabase
-      .from("products")
-      .select("*, images:product_images(*), category:categories(*)")
-      .eq("is_active", true);
-    if (options.categoryId) query = query.eq("category_id", options.categoryId);
-    if (options.featured) query = query.eq("is_featured", true);
-    if (options.trending) query = query.eq("is_trending", true);
-    if (options.newArrival) query = query.eq("is_new_arrival", true);
-    if (options.limit) query = query.limit(options.limit);
-    query = query.order("sort_order");
-    const { data, error } = await query;
-    if (error) throw error;
-    return (data ?? []) as Product[];
-  }, emptyProducts);
+  return safe(
+    () =>
+      cachedQuery(
+        async () => {
+          const supabase = createServiceClient();
+          let query = supabase
+            .from("products")
+            .select("*, images:product_images(*), category:categories(*)")
+            .eq("is_active", true);
+          if (options.categoryId) query = query.eq("category_id", options.categoryId);
+          if (options.featured) query = query.eq("is_featured", true);
+          if (options.trending) query = query.eq("is_trending", true);
+          if (options.newArrival) query = query.eq("is_new_arrival", true);
+          if (options.limit) query = query.limit(options.limit);
+          query = query.order("sort_order");
+          const { data, error } = await query;
+          if (error) throw error;
+          return (data ?? []) as Product[];
+        },
+        ["getProducts", JSON.stringify(options)],
+        [CACHE_TAGS.products],
+      ),
+    emptyProducts,
+  );
 }
 
 export async function searchProducts(
   query: string,
-  options: { limit?: number } = {}
+  options: { limit?: number } = {},
 ): Promise<Product[]> {
   const term = query.trim();
   if (!term) return [];
@@ -120,7 +147,7 @@ export async function searchProducts(
   const limit = options.limit ?? 60;
 
   return safe(async () => {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     const ilikeArg = `%${term.replace(/[%_]/g, "\\$&")}%`;
     const { data, error } = await supabase
       .from("products")
@@ -132,7 +159,7 @@ export async function searchProducts(
           `title_te.ilike.${ilikeArg}`,
           `description_en.ilike.${ilikeArg}`,
           `description_te.ilike.${ilikeArg}`,
-        ].join(",")
+        ].join(","),
       )
       .order("sort_order")
       .limit(limit);
@@ -141,43 +168,64 @@ export async function searchProducts(
   }, emptyProducts);
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
+export function getProductBySlug(slug: string): Promise<Product | null> {
   return safe<Product | null>(
-    async () => {
-      const supabase = await createClient();
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, images:product_images(*), category:categories(*)")
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .single();
-      if (error) throw error;
-      return data as Product;
-    },
-    null
+    () =>
+      cachedQuery(
+        async () => {
+          const supabase = createServiceClient();
+          const { data, error } = await supabase
+            .from("products")
+            .select("*, images:product_images(*), category:categories(*)")
+            .eq("slug", slug)
+            .eq("is_active", true)
+            .single();
+          if (error) throw error;
+          return data as Product;
+        },
+        ["getProductBySlug", slug],
+        [CACHE_TAGS.products],
+      ),
+    null,
   );
 }
 
-export async function getOffers(): Promise<Offer[]> {
-  return safe(async () => {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("offers")
-      .select("*")
-      .eq("is_active", true);
-    if (error) throw error;
-    return (data ?? []) as Offer[];
-  }, emptyOffers);
+export function getOffers(): Promise<Offer[]> {
+  return safe(
+    () =>
+      cachedQuery(
+        async () => {
+          const supabase = createServiceClient();
+          const { data, error } = await supabase
+            .from("offers")
+            .select("*")
+            .eq("is_active", true);
+          if (error) throw error;
+          return (data ?? []) as Offer[];
+        },
+        ["getOffers"],
+        [CACHE_TAGS.offers],
+      ),
+    emptyOffers,
+  );
 }
 
-export async function getBanners(position?: Banner["position"]): Promise<Banner[]> {
-  return safe(async () => {
-    const supabase = await createClient();
-    let query = supabase.from("banners").select("*").eq("is_active", true);
-    if (position) query = query.eq("position", position);
-    query = query.order("sort_order");
-    const { data, error } = await query;
-    if (error) throw error;
-    return (data ?? []) as Banner[];
-  }, emptyBanners);
+export function getBanners(position?: Banner["position"]): Promise<Banner[]> {
+  return safe(
+    () =>
+      cachedQuery(
+        async () => {
+          const supabase = createServiceClient();
+          let query = supabase.from("banners").select("*").eq("is_active", true);
+          if (position) query = query.eq("position", position);
+          query = query.order("sort_order");
+          const { data, error } = await query;
+          if (error) throw error;
+          return (data ?? []) as Banner[];
+        },
+        ["getBanners", position ?? "all"],
+        [CACHE_TAGS.banners],
+      ),
+    emptyBanners,
+  );
 }
