@@ -54,10 +54,13 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
         // client-side navigations) to refresh its count.
         window.dispatchEvent(new Event("inquiry-queued"));
 
-        const synced = await registerInquirySync();
-        if (!synced) {
-          startFallbackRetry();
-        }
+        // Fire-and-forget: register Background Sync (or start fallback timer).
+        // We don't await this — navigator.serviceWorker.ready can hang if the
+        // SW hasn't been registered yet (e.g. in dev mode).
+        registerInquirySync().then((synced) => {
+          if (!synced) startFallbackRetry();
+        });
+
         onSuccess?.();
         router.push("/inquiry/success?queued=1");
       } catch (idbErr) {
