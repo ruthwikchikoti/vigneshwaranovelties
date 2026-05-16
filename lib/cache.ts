@@ -15,11 +15,25 @@ export const CACHE_TAGS = {
 
 export type CacheTag = (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS];
 
-/** Default TTL in seconds. Acts as a safety net if invalidation fails. */
+/**
+ * Default TTL in seconds. Acts as a safety net if invalidation fails.
+ *
+ * NOTE (Cloudflare Pages): Without a KV-backed suspense cache
+ * (__NEXT_ON_PAGES__KV_SUSPENSE_CACHE), tag invalidation is per-colo
+ * (per Cloudflare data center). An admin revalidation in one colo won't
+ * invalidate entries cached in other colos. This TTL safety-net
+ * (DEFAULT_REVALIDATE) bounds worst-case staleness to 60 seconds.
+ * For global sub-minute freshness, bind a KV namespace.
+ */
 const DEFAULT_REVALIDATE = 60;
 
 /**
  * Wraps a Supabase query function with `unstable_cache`.
+ *
+ * NOTE: `unstable_cache` is deprecated in Next.js 15 in favor of the
+ * `"use cache"` directive. However, `@cloudflare/next-on-pages` does not
+ * yet support `"use cache"`, so `unstable_cache` is the pragmatic choice.
+ * Migrate to `"use cache"` once `next-on-pages` adds support.
  *
  * @param fn        - Async function that performs the Supabase query.
  *                    MUST use `createServiceClient()` (not `createClient()`)

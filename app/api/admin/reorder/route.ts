@@ -51,7 +51,8 @@ export async function PATCH(req: Request) {
     const firstError = results.find((r) => r.error)?.error;
     if (firstError) throw firstError;
 
-    revalidateCache(CACHE_TAGS[table as keyof typeof CACHE_TAGS]);
+    const tag = CACHE_TAGS[table as keyof typeof CACHE_TAGS];
+    if (tag) revalidateCache(tag);
     // Product queries join category data, so category reorders also stale product caches.
     if (table === "categories") revalidateCache(CACHE_TAGS.products);
     return NextResponse.json({ ok: true, count: items.length });

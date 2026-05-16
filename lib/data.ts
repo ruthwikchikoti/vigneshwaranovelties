@@ -3,6 +3,17 @@ import { createServiceClient } from "./supabase/server";
 import { cachedQuery, CACHE_TAGS } from "./cache";
 import type { Banner, Category, Offer, Product } from "./supabase/types";
 
+/**
+ * SECURITY NOTE: All queries in this module use `createServiceClient()`, which
+ * authenticates with the Supabase **service role key** and bypasses Row-Level
+ * Security (RLS). This is necessary because `unstable_cache` cannot close over
+ * the request-scoped `cookies()` required by the anon-key client.
+ *
+ * As a consequence, every query MUST include explicit visibility filters
+ * (e.g., `.eq("is_active", true)`) to avoid exposing draft/inactive rows.
+ * Do NOT add queries here without appropriate filters.
+ */
+
 function isSupabaseConfigured(): boolean {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   return Boolean(url && !url.includes("placeholder"));
@@ -130,7 +141,14 @@ export function getProducts(
           if (error) throw error;
           return (data ?? []) as Product[];
         },
-        ["getProducts", JSON.stringify(options)],
+        [
+          "getProducts",
+          options.categoryId ?? "",
+          String(options.featured ?? false),
+          String(options.trending ?? false),
+          String(options.newArrival ?? false),
+          String(options.limit ?? ""),
+        ],
         [CACHE_TAGS.products],
       ),
     emptyProducts,
