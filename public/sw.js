@@ -7,10 +7,10 @@
  *
  * What it intentionally doesn't do:
  *   - Cache API responses (those depend on auth + live data)
- *   - Background sync, push notifications, periodic sync
+ *   - Push notifications, periodic sync
  */
 
-const CACHE = "vn-v3";
+const CACHE = "vn-v4";
 const PRECACHE = [
   "/",
   "/shop",
@@ -102,4 +102,130 @@ async function networkFirst(req) {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Background Sync — replay queued inquiry submissions               *
+ *                                                                    *
+ *  When the browser fires a "sync" event with tag "replay-inquiry",  *
+ *  we read every pending inquiry from IndexedDB and POST it to the   *
+ *  server. Successful or permanently-failed entries are deleted;      *
+ *  transient failures cause the sync to retry later.                 *
+ * ------------------------------------------------------------------ */
+
+// --- Inline IndexedDB helpers (must match lib/inquiry-queue.ts schema) ---
+
+const IDB_NAME = "vn-inquiry-queue";
+const IDB_VERSION = 1;
+const IDB_STORE = "pending";
+
+/**
+ * Open (or create) the vn-inquiry-queue IndexedDB database.
+ * Returns a promise that resolves with the db instance.
+ */
+function openInquiryDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(IDB_NAME, IDB_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE, {
+          keyPath: "_queueId",
+          autoIncrement: true,
+        });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Read every record from the "pending" object store using a cursor.
+ * Returns a promise that resolves with an array of records.
+ */
+function getAllPending(db) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readonly");
+    const store = tx.objectStore(IDB_STORE);
+    const results = [];
+    const cursor = store.openCursor();
+    cursor.onsuccess = (event) => {
+      const c = event.target.result;
+      if (c) {
+        results.push(c.value);
+        c.continue();
+      } else {
+        resolve(results);
+      }
+    };
+    cursor.onerror = () => reject(cursor.error);
+  });
+}
+
+/**
+ * Delete a single record from the "pending" store by its _queueId key.
+ */
+function deletePending(db, queueId) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readwrite");
+    const store = tx.objectStore(IDB_STORE);
+    const request = store.delete(queueId);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// --- Sync event listener ---
+
+self.addEventListener("sync", (event) => {
+  if (event.tag === "replay-inquiry") {
+    event.waitUntil(replayQueueFromSW());
+  }
+});
+
+// --- Replay logic ---
+
+async function replayQueueFromSW() {
+  const db = await openInquiryDB();
+  const entries = await getAllPending(db);
+
+  if (entries.length === 0) return;
+
+  for (const entry of entries) {
+    // Strip internal queue metadata before sending to the server.
+    const cleaned = { ...entry };
+    delete cleaned._queueId;
+    delete cleaned._queuedAt;
+
+    let response;
+    try {
+      response = await fetch("/api/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cleaned),
+      });
+    } catch (_networkError) {
+      // Network error — throw so the browser retries the sync later.
+      throw new Error("Network error during inquiry replay — will retry.");
+    }
+
+    if (response.ok) {
+      // 2xx — successfully submitted; remove from queue.
+      await deletePending(db, entry._queueId);
+    } else if (response.status >= 400 && response.status < 500) {
+      // 4xx — validation / client error; will never succeed, so discard.
+      await deletePending(db, entry._queueId);
+    } else {
+      // 5xx — server error; throw so the browser retries the sync later.
+      throw new Error(
+        `Server returned ${response.status} during inquiry replay — will retry.`
+      );
+    }
+  }
+
+  // All entries processed — notify any open tabs.
+  const channel = new BroadcastChannel("vn-inquiry-sync");
+  channel.postMessage({ type: "inquiry-synced" });
+  channel.close();
 }

@@ -9,6 +9,8 @@ import { inquirySchema, type InquiryInput } from "@/lib/validations/inquiry";
 import { Button } from "@/components/ui/Button";
 import { whatsappGeneral } from "@/lib/whatsapp";
 import { IconWhatsapp } from "@/components/ui/IconWhatsapp";
+import { enqueueInquiry } from "@/lib/inquiry-queue";
+import { registerInquirySync, startFallbackRetry } from "@/lib/offline-sync";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -43,6 +45,30 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
 
   const onSubmit = handleSubmit(async (values) => {
     setSubmitError(null);
+
+    const enqueueAndRedirect = async () => {
+      try {
+        await enqueueInquiry(values);
+        const synced = await registerInquirySync();
+        if (!synced) {
+          startFallbackRetry();
+        }
+        onSuccess?.();
+        router.push("/inquiry/success?queued=1");
+      } catch (idbErr) {
+        // IndexedDB itself failed — last resort error
+        console.error(idbErr);
+        setSubmitError(t("errors.generic"));
+      }
+    };
+
+    // If offline, skip fetch and go straight to queue path
+    if (!navigator.onLine) {
+      await enqueueAndRedirect();
+      return;
+    }
+
+    // Online — attempt the fetch
     try {
       const res = await fetch("/api/inquiry", {
         method: "POST",
@@ -59,7 +85,8 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
       router.push("/inquiry/success");
     } catch (err) {
       console.error(err);
-      setSubmitError(t("errors.generic"));
+      // Fetch failed — queue offline and redirect
+      await enqueueAndRedirect();
     }
   });
 
