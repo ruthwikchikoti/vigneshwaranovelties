@@ -61,7 +61,6 @@ export async function replayQueue(): Promise<void> {
   const entries = await peekInquiries();
   if (entries.length === 0) return;
 
-  let allSucceeded = true;
   let replayedCount = 0;
 
   for (const entry of entries) {
@@ -81,7 +80,6 @@ export async function replayQueue(): Promise<void> {
         replayedCount++;
       } else if (res.status === 429) {
         // Rate-limited — transient; stop and retry later.
-        allSucceeded = false;
         break;
       } else if (res.status >= 400 && res.status < 500) {
         // Permanent client error (validation, bad request, etc.) — discard
@@ -91,12 +89,10 @@ export async function replayQueue(): Promise<void> {
         broadcastDiscarded(_queueId);
       } else {
         // 5xx — transient server error; stop and retry later.
-        allSucceeded = false;
         break;
       }
     } catch {
       // Network error (offline, DNS failure, etc.) — stop immediately.
-      allSucceeded = false;
       break;
     }
   }
