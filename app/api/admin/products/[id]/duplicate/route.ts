@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { slugify } from "@/lib/utils";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -77,6 +78,7 @@ export async function POST(
       if (imgErr) throw imgErr;
     }
 
+    revalidateCache(CACHE_TAGS.products);
     return NextResponse.json({ ok: true, id: created.id });
   } catch (err) {
     console.error("[admin] product duplicate:", err);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { categoryPayloadSchema } from "@/lib/validations/category";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
       .select()
       .single();
     if (error) throw error;
+    revalidateCache(CACHE_TAGS.categories, CACHE_TAGS.products);
     return NextResponse.json({ ok: true, id: data.id });
   } catch (err) {
     console.error("[admin] category create:", err);

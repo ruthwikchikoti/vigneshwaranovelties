@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAdminUser } from "@/lib/admin/auth";
 import { setHeroSettings, HERO_MIN, HERO_MAX } from "@/lib/admin/settings";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -28,6 +29,7 @@ export async function PUT(req: Request) {
 
   try {
     await setHeroSettings(parsed.data);
+    revalidateCache(CACHE_TAGS.settings);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[admin] hero settings save:", err);

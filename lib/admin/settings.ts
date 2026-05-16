@@ -1,5 +1,6 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/server";
+import { cachedQuery, CACHE_TAGS } from "@/lib/cache";
 
 export type Announcement = {
   /** English copy. Falls back to default if blank. */
@@ -26,29 +27,35 @@ const isConfigured = () =>
 export async function getAnnouncement(): Promise<Announcement> {
   if (!isConfigured()) return DEFAULT_ANNOUNCEMENT;
   try {
-    const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from("settings")
-      .select("value")
-      .eq("key", "announcement")
-      .maybeSingle();
-    if (error || !data?.value) return DEFAULT_ANNOUNCEMENT;
-    const v = data.value as Partial<Announcement> & { text?: string };
-    // Back-compat: an older row may have a single `text` field — promote it to `text_en`.
-    const legacyText = typeof v.text === "string" ? v.text : "";
-    return {
-      text_en:
-        typeof v.text_en === "string" && v.text_en.length > 0
-          ? v.text_en
-          : legacyText.length > 0
-            ? legacyText
-            : DEFAULT_ANNOUNCEMENT.text_en,
-      text_te:
-        typeof v.text_te === "string" && v.text_te.length > 0
-          ? v.text_te
-          : DEFAULT_ANNOUNCEMENT.text_te,
-      enabled: typeof v.enabled === "boolean" ? v.enabled : DEFAULT_ANNOUNCEMENT.enabled,
-    };
+    return await cachedQuery(
+      async () => {
+        const supabase = createServiceClient();
+        const { data, error } = await supabase
+          .from("settings")
+          .select("value")
+          .eq("key", "announcement")
+          .maybeSingle();
+        if (error || !data?.value) return DEFAULT_ANNOUNCEMENT;
+        const v = data.value as Partial<Announcement> & { text?: string };
+        // Back-compat: an older row may have a single `text` field — promote it to `text_en`.
+        const legacyText = typeof v.text === "string" ? v.text : "";
+        return {
+          text_en:
+            typeof v.text_en === "string" && v.text_en.length > 0
+              ? v.text_en
+              : legacyText.length > 0
+                ? legacyText
+                : DEFAULT_ANNOUNCEMENT.text_en,
+          text_te:
+            typeof v.text_te === "string" && v.text_te.length > 0
+              ? v.text_te
+              : DEFAULT_ANNOUNCEMENT.text_te,
+          enabled: typeof v.enabled === "boolean" ? v.enabled : DEFAULT_ANNOUNCEMENT.enabled,
+        };
+      },
+      ["getAnnouncement"],
+      [CACHE_TAGS.settings],
+    );
   } catch (err) {
     console.error("[settings] announcement read:", err);
     return DEFAULT_ANNOUNCEMENT;
@@ -84,17 +91,23 @@ const HERO_MAX = 30;
 export async function getHeroSettings(): Promise<HeroSettings> {
   if (!isConfigured()) return DEFAULT_HERO;
   try {
-    const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from("settings")
-      .select("value")
-      .eq("key", "hero")
-      .maybeSingle();
-    if (error || !data?.value) return DEFAULT_HERO;
-    const v = data.value as Partial<HeroSettings>;
-    const raw = Number(v.rotation_seconds);
-    const clamped = Number.isFinite(raw) ? Math.min(HERO_MAX, Math.max(HERO_MIN, raw)) : DEFAULT_HERO.rotation_seconds;
-    return { rotation_seconds: clamped };
+    return await cachedQuery(
+      async () => {
+        const supabase = createServiceClient();
+        const { data, error } = await supabase
+          .from("settings")
+          .select("value")
+          .eq("key", "hero")
+          .maybeSingle();
+        if (error || !data?.value) return DEFAULT_HERO;
+        const v = data.value as Partial<HeroSettings>;
+        const raw = Number(v.rotation_seconds);
+        const clamped = Number.isFinite(raw) ? Math.min(HERO_MAX, Math.max(HERO_MIN, raw)) : DEFAULT_HERO.rotation_seconds;
+        return { rotation_seconds: clamped };
+      },
+      ["getHeroSettings"],
+      [CACHE_TAGS.settings],
+    );
   } catch (err) {
     console.error("[settings] hero read:", err);
     return DEFAULT_HERO;
@@ -130,20 +143,26 @@ const DEFAULT_HOME_EDITORIAL: HomeEditorial = {
 export async function getHomeEditorial(): Promise<HomeEditorial> {
   if (!isConfigured()) return DEFAULT_HOME_EDITORIAL;
   try {
-    const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from("settings")
-      .select("value")
-      .eq("key", "home_editorial")
-      .maybeSingle();
-    if (error || !data?.value) return DEFAULT_HOME_EDITORIAL;
-    const v = data.value as Partial<HomeEditorial>;
-    return {
-      image_url:
-        typeof v.image_url === "string" && v.image_url.length > 0
-          ? v.image_url
-          : DEFAULT_HOME_EDITORIAL.image_url,
-    };
+    return await cachedQuery(
+      async () => {
+        const supabase = createServiceClient();
+        const { data, error } = await supabase
+          .from("settings")
+          .select("value")
+          .eq("key", "home_editorial")
+          .maybeSingle();
+        if (error || !data?.value) return DEFAULT_HOME_EDITORIAL;
+        const v = data.value as Partial<HomeEditorial>;
+        return {
+          image_url:
+            typeof v.image_url === "string" && v.image_url.length > 0
+              ? v.image_url
+              : DEFAULT_HOME_EDITORIAL.image_url,
+        };
+      },
+      ["getHomeEditorial"],
+      [CACHE_TAGS.settings],
+    );
   } catch (err) {
     console.error("[settings] home_editorial read:", err);
     return DEFAULT_HOME_EDITORIAL;
