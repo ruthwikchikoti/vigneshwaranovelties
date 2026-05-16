@@ -113,8 +113,8 @@ export function Header({ announcement }: HeaderProps = {}) {
   const leftLinks = [
     { href: "/shop", label: t("shopAll") },
     { href: "/category/1gram-gold", label: t("collections") },
-    { href: "/category/german-silver", label: "Silver" },
-    { href: "/category/gift-articles", label: "Gifting" },
+    { href: "/category/german-silver", label: t("silver") },
+    { href: "/category/gift-articles", label: t("gifting") },
   ];
   const rightLinks = [
     { href: "/offers", label: t("offers") },
