@@ -139,7 +139,9 @@ export async function searchProducts(
       const { data, error } = await supabase
         .from("products")
         .select("*, images:product_images(*), category:categories(*)")
-        .in("id", ids);
+        .in("id", ids)
+        .eq("is_active", true)
+        .limit(ids.length);
       if (error) throw error;
 
       // Preserve the relevance order returned by the RPC.

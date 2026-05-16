@@ -30,7 +30,7 @@ vi.mock("@/lib/supabase/server", () => ({
 
 // ── Import after mocks ──────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// Dynamic import is necessary so vi.mock() calls above are registered first.
 const { searchProducts } = await import("@/lib/data");
 
 // ── Tests ───────────────────────────────────────────────────────────
@@ -68,7 +68,9 @@ describe("searchProducts", () => {
       { id: "bbb", title_en: "B", images: [], category: null },
     ];
 
-    const inMock = vi.fn().mockResolvedValue({ data: hydratedProducts, error: null });
+    const limitMock = vi.fn().mockResolvedValue({ data: hydratedProducts, error: null });
+    const eqMock = vi.fn().mockReturnValue({ limit: limitMock });
+    const inMock = vi.fn().mockReturnValue({ eq: eqMock });
 
     fromMock.mockReturnValue({
       select: vi.fn().mockReturnValue({
@@ -84,6 +86,10 @@ describe("searchProducts", () => {
       result_limit: 60,
     });
 
+    // Verify hydration query includes is_active filter and limit
+    expect(eqMock).toHaveBeenCalledWith("is_active", true);
+    expect(limitMock).toHaveBeenCalledWith(3);
+
     // Results should be in relevance order (aaa, bbb, ccc) not DB order
     expect(result.map((p: { id: string }) => p.id)).toEqual(["aaa", "bbb", "ccc"]);
   });
@@ -96,9 +102,13 @@ describe("searchProducts", () => {
 
     fromMock.mockReturnValue({
       select: vi.fn().mockReturnValue({
-        in: vi.fn().mockResolvedValue({
-          data: [{ id: "aaa", title_en: "A", images: [], category: null }],
-          error: null,
+        in: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({
+              data: [{ id: "aaa", title_en: "A", images: [], category: null }],
+              error: null,
+            }),
+          }),
         }),
       }),
     });
