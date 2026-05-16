@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 
 export function MobileBottomNav() {
   const t = useTranslations("nav");
+  const tMobile = useTranslations("mobileNav");
   const locale = useLocale() as "en" | "te";
   const pathname = usePathname();
   const cartCount = useCart((s) => s.count());
@@ -63,7 +64,7 @@ export function MobileBottomNav() {
           >
             <IconWhatsapp size={20} />
             <span className="text-[0.55rem] smallcaps tracking-[0.15em]">
-              Chat
+              {tMobile("chat")}
             </span>
           </a>
         </li>
