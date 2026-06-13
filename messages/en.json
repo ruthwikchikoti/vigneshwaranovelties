@@ -152,7 +152,8 @@
     "statusSent": "Sent",
     "queued": "Your order has been saved and will be sent automatically when you're back online.",
     "pendingBanner": "You have {count} pending orders — they'll send automatically when you're online.",
-    "pendingBannerOne": "Your order is saved — it'll send automatically when you're online."
+    "pendingBannerOne": "Your order is saved — it'll send automatically when you're online.",
+    "discardedBanner": "An order couldn't be sent. Please try again, or reach us on WhatsApp."
   },
   "offers": {
     "title": "Offers",

@@ -24,6 +24,9 @@ export const inquirySchema = z.object({
     )
     .min(1, "items"),
   hp: z.string().optional(), // honeypot
+  // Client-generated dedup key (stable across offline-queue replays) so a
+  // retried submission can't create a duplicate inquiry/email/push.
+  idempotency_key: z.string().uuid().optional(),
 });
 
 export type InquiryInput = z.infer<typeof inquirySchema>;

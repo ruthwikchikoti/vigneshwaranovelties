@@ -43,6 +43,7 @@ export async function POST(req: Request) {
     items: parsed.data.items,
     source: parsed.data.source,
     status: "new" as const,
+    idempotency_key: parsed.data.idempotency_key ?? null,
   };
 
   // 1. Persist to Supabase (if configured) — otherwise log to console for dev
@@ -50,7 +51,15 @@ export async function POST(req: Request) {
     try {
       const supabase = createServiceClient();
       const { error } = await supabase.from("inquiries").insert(inquiry);
-      if (error) throw error;
+      if (error) {
+        // Duplicate replay (same idempotency_key) — the original was already
+        // saved + emailed, so ACK with 200 so the client clears its queue and
+        // we do NOT email/push again.
+        if (error.code === "23505") {
+          return NextResponse.json({ ok: true, duplicate: true });
+        }
+        throw error;
+      }
     } catch (err) {
       console.error("[inquiry] Supabase insert failed:", err);
       return NextResponse.json({ error: "db" }, { status: 500 });

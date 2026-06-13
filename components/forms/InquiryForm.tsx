@@ -46,9 +46,20 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
   const onSubmit = handleSubmit(async (values) => {
     setSubmitError(null);
 
+    // One stable dedup key per submission, generated up front so the online
+    // POST and any offline-queue replay carry the SAME key — the server uses it
+    // to reject duplicates (no double inquiry / email / push).
+    const payload: InquiryInput = {
+      ...values,
+      idempotency_key:
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : undefined,
+    };
+
     const enqueueAndRedirect = async () => {
       try {
-        await enqueueInquiry(values);
+        await enqueueInquiry(payload);
 
         // Notify the PendingInquiryBanner (which stays mounted across
         // client-side navigations) to refresh its count.
@@ -84,7 +95,7 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
       const res = await fetch("/api/inquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -96,9 +107,14 @@ export function InquiryForm({ source, initialItems, onSuccess, compact }: Props)
         return;
       }
 
-      // Server returned an error — show it to the user rather than silently
-      // queuing, since 4xx errors (validation, etc.) will never succeed on
-      // replay and would eventually be discarded.
+      // 5xx is transient (e.g. Supabase hiccup) — queue for replay instead of
+      // losing the inquiry. The idempotency key makes the replay safe.
+      if (res.status >= 500) {
+        await enqueueAndRedirect();
+        return;
+      }
+
+      // 4xx (validation, etc.) will never succeed on replay — show the error.
       setSubmitError(t("errors.generic"));
     } catch {
       // fetch() rejected → genuine network / connection failure.  Queue the

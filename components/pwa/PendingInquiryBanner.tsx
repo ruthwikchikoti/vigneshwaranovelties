@@ -8,6 +8,7 @@ import { listenForSyncMessages, ensureFallbackRetryIfNeeded } from "@/lib/offlin
 export function PendingInquiryBanner() {
   const t = useTranslations("inquiry");
   const [count, setCount] = useState(0);
+  const [discarded, setDiscarded] = useState(false);
 
   useEffect(() => {
     const refreshCount = () => {
@@ -21,10 +22,15 @@ export function PendingInquiryBanner() {
     // the fallback retry timer so entries from a previous session are replayed.
     ensureFallbackRetryIfNeeded().catch(() => {});
 
-    // Listen for sync completion (SW or main-thread replay succeeded)
-    const unsubscribe = listenForSyncMessages(() => {
-      refreshCount();
-    });
+    // Listen for sync completion (SW or main-thread replay succeeded) and for
+    // permanently-discarded inquiries (so they don't vanish silently).
+    const unsubscribe = listenForSyncMessages(
+      () => refreshCount(),
+      () => {
+        setDiscarded(true);
+        refreshCount();
+      },
+    );
 
     // Listen for new items being enqueued from InquiryForm — the layout is
     // preserved across client-side navigations so we can't rely on remount.
@@ -45,6 +51,16 @@ export function PendingInquiryBanner() {
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
+
+  // A permanently-rejected inquiry takes priority — tell the customer it didn't
+  // go through (with a way to reach us) rather than letting it disappear.
+  if (discarded) {
+    return (
+      <div className="bg-cognac/10 border-b border-cognac/20 px-4 py-2.5 text-center">
+        <p className="text-xs text-cognac leading-relaxed">{t("discardedBanner")}</p>
+      </div>
+    );
+  }
 
   if (count === 0) return null;
 

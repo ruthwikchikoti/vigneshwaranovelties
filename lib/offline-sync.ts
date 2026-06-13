@@ -168,12 +168,20 @@ export async function ensureFallbackRetryIfNeeded(): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
- * Listen for `inquiry-synced` messages broadcast after a successful replay.
+ * Listen for replay outcome messages on the sync BroadcastChannel.
  *
+ * @param onSynced     Called after a successful replay drains (entries left
+ *                     the queue) so the UI can refresh its pending count.
+ * @param onDiscarded  Called when a queued inquiry was permanently rejected
+ *                     (4xx on replay) and dropped — so the UI can tell the
+ *                     customer it didn't go through, instead of it vanishing.
  * @returns An unsubscribe function that closes the underlying
  *          `BroadcastChannel`.
  */
-export function listenForSyncMessages(callback: () => void): () => void {
+export function listenForSyncMessages(
+  onSynced: () => void,
+  onDiscarded?: () => void,
+): () => void {
   if (
     typeof window === "undefined" ||
     typeof BroadcastChannel === "undefined"
@@ -186,7 +194,9 @@ export function listenForSyncMessages(callback: () => void): () => void {
 
   const handler = (event: MessageEvent) => {
     if (event.data?.type === "inquiry-synced") {
-      callback();
+      onSynced();
+    } else if (event.data?.type === "inquiry-discarded") {
+      onDiscarded?.();
     }
   };
 
