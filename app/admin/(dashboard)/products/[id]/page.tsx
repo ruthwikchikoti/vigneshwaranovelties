@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { DuplicateProductButton } from "@/components/admin/DuplicateProductButton";
+import { AiImagePanel } from "@/components/admin/AiImagePanel";
 import { AdminBackLink } from "@/components/admin/AdminBackLink";
 import { adminGetCategories, adminGetProducts } from "@/lib/admin/queries";
+import { aiConfig } from "@/lib/ai/config";
 
 export const metadata = { title: "Edit product · Admin" };
 
@@ -32,6 +34,7 @@ export default async function EditProductPage({
         </div>
       </div>
       <ProductForm product={product} categories={categories} />
+      {aiConfig().enabled && <AiImagePanel productId={product.id} />}
     </div>
   );
 }

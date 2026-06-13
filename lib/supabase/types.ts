@@ -15,6 +15,8 @@ export type Category = {
   created_at: string;
 };
 
+export type AiStatus = "none" | "pending" | "approved" | "rejected";
+
 export type ProductImage = {
   id: string;
   product_id: string;
@@ -24,6 +26,28 @@ export type ProductImage = {
   alt_text: string | null;
   sort_order: number;
   is_primary: boolean;
+  /** 'none' = an original owner photo; otherwise an AI variant's review state. */
+  ai_status: AiStatus;
+  ai_variant: string | null;
+  ai_prompt: string | null;
+  ai_model: string | null;
+  ai_job_id: string | null;
+};
+
+export type AiJobStatus = "queued" | "running" | "completed" | "failed" | "partial";
+
+export type AiImageJob = {
+  id: string;
+  product_id: string;
+  source_fingerprint: string;
+  status: AiJobStatus;
+  model: string | null;
+  variants_total: number;
+  variants_done: number;
+  variants_failed: number;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type StockStatus = "in_stock" | "made_to_order" | "sold_out";

@@ -26,8 +26,14 @@ export async function PATCH(
     const { error } = await supabase.from("products").update(product).eq("id", id);
     if (error) throw error;
 
-    // Replace image set entirely (admin uploads the full ordered list).
-    await supabase.from("product_images").delete().eq("product_id", id);
+    // Replace only the ORIGINAL photos (the admin uploads the full ordered
+    // list). AI variant rows (ai_status != 'none') are preserved so editing a
+    // product never wipes generated/approved imagery.
+    await supabase
+      .from("product_images")
+      .delete()
+      .eq("product_id", id)
+      .eq("ai_status", "none");
     if (images.length) {
       const { error: imgErr } = await supabase.from("product_images").insert(
         images.map((url, idx) => ({
@@ -35,6 +41,7 @@ export async function PATCH(
           original_url: url,
           sort_order: idx,
           is_primary: idx === 0,
+          ai_status: "none",
         }))
       );
       if (imgErr) throw imgErr;

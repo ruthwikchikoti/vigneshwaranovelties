@@ -8,6 +8,7 @@ import type { Product } from "@/lib/supabase/types";
 import { localize } from "@/lib/supabase/types";
 import { discountPercent, formatINR } from "@/lib/format";
 import { ikImage, placeholderImage } from "@/lib/imagekit";
+import { displayUrl, publicGalleryImages } from "@/lib/product-images";
 import { useCart } from "@/lib/cart-store";
 import { WishlistButton } from "@/components/wishlist/WishlistButton";
 import { cn } from "@/lib/utils";
@@ -25,10 +26,12 @@ export function ProductCard({ product, variant = "default", priority }: Props) {
   const inCart = cart.has(product.id);
 
   const title = localize(product, locale, "title");
-  const primary = product.images?.find((i) => i.is_primary) ?? product.images?.[0];
-  const secondary = product.images?.find((i) => !i.is_primary) ?? primary;
-  const primaryUrl = primary?.original_url ?? placeholderImage(title);
-  const secondaryUrl = secondary?.original_url ?? primaryUrl;
+  // Owner originals + approved AI variants only (hide pending/rejected).
+  const gallery = publicGalleryImages(product.images);
+  const primary = gallery.find((i) => i.is_primary) ?? gallery[0];
+  const secondary = gallery.find((i) => i.id !== primary?.id) ?? primary;
+  const primaryUrl = primary ? displayUrl(primary) : placeholderImage(title);
+  const secondaryUrl = secondary ? displayUrl(secondary) : primaryUrl;
   const discountPct = discountPercent(product.price_inr, product.discount_price_inr);
 
   const sizes = {

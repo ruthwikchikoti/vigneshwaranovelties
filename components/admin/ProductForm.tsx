@@ -114,12 +114,17 @@ export function ProductForm({ product, categories }: Props) {
             body: JSON.stringify(body),
           }
         );
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
           throw new Error(data.message ?? data.error ?? "Could not save");
         }
 
-        router.push("/admin/products");
+        // After creating, land on the edit page so the AI Studio is right there.
+        if (!product && data.id) {
+          router.push(`/admin/products/${data.id}`);
+        } else {
+          router.push("/admin/products");
+        }
         router.refresh();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not save");

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { ikImage, placeholderImage } from "@/lib/imagekit";
 import type { ProductImage } from "@/lib/supabase/types";
+import { displayUrl, publicGalleryImages } from "@/lib/product-images";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -22,9 +23,16 @@ export function ProductGallery({ images, alt }: Props) {
     alt_text: null,
     sort_order: 0,
     is_primary: true,
+    ai_status: "none",
+    ai_variant: null,
+    ai_prompt: null,
+    ai_model: null,
+    ai_job_id: null,
   };
-  const list = images.length ? images : [fallback];
-  const current = list[active];
+  // Owner originals + approved AI variants only; pending/rejected are hidden.
+  const visible = publicGalleryImages(images);
+  const list = visible.length ? visible : [fallback];
+  const current = list[active] ?? list[0];
 
   return (
     <div className="grid lg:grid-cols-[1fr_4.5fr] gap-3 lg:gap-5">
@@ -42,7 +50,7 @@ export function ProductGallery({ images, alt }: Props) {
             aria-label={`View image ${i + 1}`}
           >
             <Image
-              src={ikImage(img.original_url, { width: 200, format: "auto" })}
+              src={ikImage(displayUrl(img), { width: 200, format: "auto" })}
               alt=""
               fill
               sizes="64px"
@@ -54,7 +62,7 @@ export function ProductGallery({ images, alt }: Props) {
 
       <div className="order-1 lg:order-2 relative aspect-[4/5] overflow-hidden bg-mist">
         <Image
-          src={ikImage(current.original_url, { width: 1400, format: "auto", quality: 90 })}
+          src={ikImage(displayUrl(current), { width: 1400, format: "auto", quality: 90 })}
           alt={alt}
           fill
           sizes="(min-width: 1024px) 50vw, 100vw"
