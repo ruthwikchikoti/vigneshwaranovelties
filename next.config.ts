@@ -5,9 +5,9 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   images: {
-    // Until a real CDN (ImageKit) is wired up we let the upstream serve directly.
-    // Cloudflare Pages does not support Next's image optimizer anyway — production
-    // uses ImageKit URL transforms via lib/imagekit.ts.
+    // Production serves images through ImageKit URL transforms (lib/imagekit.ts),
+    // so we skip Next's own optimizer — this also avoids Vercel image-optimization
+    // usage on the free tier.
     unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "ik.imagekit.io" },
@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ["motion", "lucide-react"],
+  },
+  // Don't fail the production build (Vercel) on lint findings — lint is run
+  // separately via `npm run lint`.
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   poweredByHeader: false,
 };

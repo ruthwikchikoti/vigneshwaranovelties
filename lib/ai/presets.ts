@@ -1,111 +1,90 @@
 /**
- * The shot list for the AI Studio. Two engines, both on AWS Bedrock:
+ * The shot list for the AI Studio. Every shot is a single Google Gemini
+ * image-edit: the owner's uploaded photo + the shot's `instruction` → a new look
+ * of the SAME piece. One engine, no background-removal or compositing.
  *
- *  - engine "studio" (tier "exact"): Remove Background → composite the EXACT
- *    cutout onto a studio backdrop. 100% faithful to the uploaded piece.
- *  - engine "scene" (tier "styled"): Stable Image Control Structure — generates
- *    a styled scene (marble/lifestyle/angle) GUIDED BY the piece's structure at
- *    high control_strength, with a FIXED seed so output is deterministic and
- *    stays close to the original upload. Details are re-rendered, so these are
- *    flagged "styled" in the review grid.
+ * Each instruction is appended to a product-derived subject line and a shared
+ * fidelity clause (see buildInstruction) that tells Gemini to keep the jewellery
+ * identical. Shots flagged `experimental` (currently the on-model portrait) are
+ * the hardest cases — they're badged in the review grid and stay pending until
+ * the owner approves them.
  */
-export type Hex = string;
 
-export type Backdrop =
-  | { kind: "radial"; inner: Hex; outer: Hex }
-  | { kind: "linear"; top: Hex; bottom: Hex };
-
-export type Tier = "exact" | "styled";
-
-export type StudioShot = {
+export type Shot = {
   id: string;
   label: string;
-  engine: "studio";
-  tier: "exact";
-  backdrop: Backdrop;
-  reflection: boolean;
-  shadow: boolean;
-  vignette: boolean;
-  crop?: boolean;
+  /** Scene/styling instruction appended to the product subject + fidelity clause. */
+  instruction: string;
+  /** Per-shot OpenAI quality override ("low" | "medium" | "high"). Cost scales
+   *  steeply with quality, so plain studio shots run "low" and only the
+   *  detail/scene-heavy ones pay for more. Falls back to AiConfig.openaiQuality. */
+  quality?: "low" | "medium" | "high";
+  /** Low-confidence shot (e.g. model wearing the piece) — badged for review. */
+  experimental?: boolean;
 };
-
-export type SceneShot = {
-  id: string;
-  label: string;
-  engine: "scene";
-  tier: "styled";
-  /** Scene/styling guidance appended to the product-derived prompt. */
-  scene: string;
-  /** 0..1 — higher = stay closer to the uploaded piece's structure. */
-  controlStrength: number;
-};
-
-export type Shot = StudioShot | SceneShot;
-
-/** Back-compat alias: lib/ai/compose.ts composites a StudioShot. */
-export type BackgroundPreset = StudioShot;
 
 export const SHOTS: Shot[] = [
   {
     id: "white_studio",
     label: "White studio",
-    engine: "studio",
-    tier: "exact",
-    backdrop: { kind: "radial", inner: "#ffffff", outer: "#e9e7e2" },
-    reflection: false,
-    shadow: true,
-    vignette: false,
-  },
-  {
-    id: "charcoal_luxe",
-    label: "Charcoal luxe",
-    engine: "studio",
-    tier: "exact",
-    backdrop: { kind: "radial", inner: "#2b2720", outer: "#0c0b0a" },
-    reflection: true,
-    shadow: false,
-    vignette: true,
+    quality: "low", // plain backdrop — cheapest tier is plenty
+    instruction:
+      "Re-photograph it as a professional e-commerce product shot on a clean seamless white studio background, soft even lighting, a gentle natural contact shadow beneath the piece, centred composition.",
   },
   {
     id: "macro_detail",
     label: "Macro detail",
-    engine: "studio",
-    tier: "exact",
-    backdrop: { kind: "radial", inner: "#ffffff", outer: "#ece9e3" },
-    reflection: false,
-    shadow: true,
-    vignette: false,
-    crop: true,
+    quality: "medium", // detail matters, but input_fidelity carries the piece
+    instruction:
+      "Re-photograph it as an extreme macro close-up that fills the frame, shallow depth of field, crisp focus on the stones and metal texture, soft studio light on a neutral background.",
   },
   {
     id: "marble_lifestyle",
     label: "Marble lifestyle",
-    engine: "scene",
-    tier: "styled",
-    scene:
-      "displayed on a polished white marble surface with soft natural daylight and gentle shadow, premium lifestyle catalog still life",
-    controlStrength: 0.9,
+    quality: "medium",
+    instruction:
+      "Re-photograph it resting on a polished white marble surface with soft natural daylight and a gentle shadow, premium lifestyle catalogue still life.",
   },
   {
     id: "golden_angle",
     label: "Golden angle",
-    engine: "scene",
-    tier: "styled",
-    scene:
-      "three-quarter angled hero on a dark reflective surface with a warm golden key light and soft bokeh, luxury advertising photograph",
-    controlStrength: 0.9,
+    quality: "medium",
+    instruction:
+      "Re-photograph it as a three-quarter angled hero on a dark reflective surface with a warm golden key light and soft bokeh, luxury advertising photograph.",
   },
   {
     id: "ivory_glow",
     label: "Ivory glow",
-    engine: "studio",
-    tier: "exact",
-    backdrop: { kind: "radial", inner: "#fbf7ef", outer: "#ece1cf" },
-    reflection: true,
-    shadow: false,
-    vignette: false,
+    quality: "low", // soft plain backdrop — cheapest tier is plenty
+    instruction:
+      "Re-photograph it on a warm ivory/cream backdrop with a soft glowing key light and a subtle reflection beneath, elegant boutique catalogue look.",
+  },
+  {
+    id: "model_wear",
+    label: "On model",
+    experimental: true,
+    quality: "high", // hardest shot — worth the top tier
+    instruction:
+      "Show an elegant Indian woman wearing this exact piece in a soft-lit studio portrait, tasteful saree or blouse neckline, focus on the jewellery, realistic skin and fabric.",
   },
 ];
+
+/** Shared fidelity + cleanliness clause every shot inherits. */
+const FIDELITY_CLAUSE =
+  "Reproduce the EXACT piece from the photo — do not beautify, redesign, smooth, " +
+  "restyle or upgrade the jewellery. Keep the same shape, every gemstone and its exact " +
+  "colour, every diamond, the exact metal tone and the chain/pendant layout. Do not add, " +
+  "remove, recolour or distort any stones. Change only the background, lighting and camera " +
+  "angle. Photorealistic, premium catalogue quality, no text, no watermark.";
+
+/**
+ * Compose the full Gemini instruction for a shot from the product subject
+ * (title / category / tags) + the shot styling + the shared fidelity clause.
+ */
+export function buildInstruction(shot: Shot, subject: string): string {
+  const subjectLine = subject ? `This is a photograph of ${subject}. ` : "";
+  return `${subjectLine}${shot.instruction} ${FIDELITY_CLAUSE}`;
+}
 
 /** Pick the first N shots (deterministic, aligned by index for retries). */
 export function selectShots(count: number): Shot[] {
@@ -117,6 +96,7 @@ export function shotLabel(id: string | null): string {
   return SHOTS.find((s) => s.id === id)?.label ?? id ?? "Variant";
 }
 
-export function shotTier(id: string | null): Tier | null {
-  return SHOTS.find((s) => s.id === id)?.tier ?? null;
+/** True when the shot is an experimental/low-confidence look (badged in admin). */
+export function shotExperimental(id: string | null): boolean {
+  return Boolean(SHOTS.find((s) => s.id === id)?.experimental);
 }

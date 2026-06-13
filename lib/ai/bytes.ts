@@ -1,7 +1,7 @@
 /**
  * Edge-runtime-safe base64 <-> bytes helpers + a SHA-256 fingerprint.
  * No Node Buffer dependency — uses atob/btoa and WebCrypto, both available on
- * the Cloudflare Workers / Next edge runtime.
+ * the Next.js edge runtime.
  */
 
 export function base64ToBytes(b64: string): Uint8Array {

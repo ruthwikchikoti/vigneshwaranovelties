@@ -94,8 +94,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-// Required for Cloudflare Pages — every dynamic public page runs on the
-// Workers edge runtime. Supabase JS and next-intl work fine on edge.
+// Dynamic public pages run on the edge runtime (fast cold starts, global).
+// Supabase JS and next-intl work fine on edge.
 //
 // Note: `generateStaticParams` is intentionally NOT exported here because
 // Next.js disallows combining it with edge runtime. Locale routing is still

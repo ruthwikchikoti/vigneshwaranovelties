@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { aiImages } from "@/lib/product-images";
-import { isBedrockConfigured } from "@/lib/ai/config";
+import { aiConfigured } from "@/lib/ai/config";
 import type { ProductImage } from "@/lib/supabase/types";
 
 export const runtime = "edge";
@@ -32,7 +32,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       job: job ?? null,
       images: aiImages((images ?? []) as ProductImage[]),
-      mock: !isBedrockConfigured(),
+      mock: !aiConfigured(),
     });
   } catch (err) {
     console.error("[admin] ai status:", err);

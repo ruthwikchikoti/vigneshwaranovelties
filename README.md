@@ -2,7 +2,7 @@
 
 A premium digital showroom for Vigneshwara Novelties — jewelry, silver and gift articles.  Inquiry-based (no payment gateway). Mobile-first, Modern Heirloom aesthetic.
 
-**Stack:** Next.js 15 · TypeScript · Tailwind v4 · Supabase · Cloudflare Pages · ImageKit · Resend · next-intl (EN/TE)
+**Stack:** Next.js 15 · TypeScript · Tailwind v4 · Supabase · Vercel · ImageKit · Brevo · next-intl (EN/TE)
 
 ---
 
@@ -64,21 +64,18 @@ When a customer submits an order, the owner receives a formatted email with all 
 
 ---
 
-## 5. Deploy to Cloudflare Pages
+## 5. Deploy to Vercel
 
-The free tier supports unlimited bandwidth and commercial use.
+Zero-config — Vercel auto-detects Next.js. The simplest path:
 
-```bash
-npm install -g wrangler                        # one-time
-wrangler login                                 # one-time
-npm run pages:deploy                           # builds + deploys
-```
+1. Push the repo to GitHub.
+2. At https://vercel.com → **Add New… → Project** → import the repo. Framework "Next.js" is detected; leave the build settings default.
+3. In **Settings → Environment Variables**, paste every var from `.env.example` (Supabase, ImageKit URL, Brevo, OpenAI, site/owner vars). Set them for **Production** (and Preview if you want).
+4. **Deploy.** Every push to `main` auto-deploys after that.
 
-Or wire up a GitHub repo in the Cloudflare dashboard for auto-deploys on push.
+For a custom domain: **Project → Settings → Domains → Add**, then point your DNS as Vercel instructs.
 
-In the Cloudflare dashboard, set the env vars from `.env.example` (Supabase, ImageKit, Resend, etc.). Make sure to also set `nodejs_compat` compatibility flag (already in `wrangler.toml`).
-
-For a custom domain, point your DNS to Cloudflare and bind it in **Pages → Custom domains**.
+> Note: Vercel's free **Hobby** tier is officially non-commercial. An inquiry-only catalog is a grey area; if you ever need to be fully compliant, upgrade to **Pro ($20/mo)**.
 
 ---
 
@@ -131,10 +128,11 @@ public/                 # favicons, robots.txt
 ## 8. Cost estimate
 
 All free-tier:
-- Cloudflare Pages — unlimited bandwidth
+- Vercel (Hobby) — 100GB bandwidth/mo (non-commercial; Pro $20/mo if enforced)
 - Supabase — 500MB DB, 1GB storage, 2GB egress
 - ImageKit — 20GB bandwidth/mo
-- Resend — 3000 emails/mo
+- Brevo — 300 emails/day
+- OpenAI image generation — pay-per-image (admin AI Studio only)
 - Domain — ~₹800/yr only ongoing cost
 
 Realistic capacity: ~50K monthly visitors at ₹65/mo (domain only).

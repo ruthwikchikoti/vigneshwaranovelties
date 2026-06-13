@@ -3,7 +3,7 @@ import "server-only";
 /**
  * Email backend — Brevo HTTP API.
  *
- * Why Brevo: works on any runtime (Node + Cloudflare edge), free tier 300/day,
+ * Why Brevo: works on any runtime (Node + edge), free tier 300/day,
  * no custom domain required. The sender email just needs a one-click verification
  * in the Brevo dashboard (a personal gmail works).
  *

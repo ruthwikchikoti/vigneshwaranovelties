@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { enqueueSchema } from "@/lib/validations/ai";
-import { aiConfig, isBedrockConfigured } from "@/lib/ai/config";
+import { aiConfig, aiConfigured } from "@/lib/ai/config";
 import { selectShots } from "@/lib/ai/presets";
 import { sourceFingerprint } from "@/lib/ai/bytes";
 import { originalImages } from "@/lib/product-images";
@@ -52,11 +52,11 @@ export async function POST(req: Request) {
     }
 
     const variants = selectShots(cfg.imagesPerProduct);
-    // Include BOTH engine models so swapping either busts the cache.
+    // Include the OpenAI model so switching models busts the cache.
     const fingerprint = await sourceFingerprint(
       originals.map((i) => i.original_url),
       variants.length,
-      `${cfg.removeBgModelId}|${cfg.controlModelId}`
+      cfg.openaiModel
     );
 
     // Look for an existing job with this exact source fingerprint.
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
         jobId: existing.id,
         total: existing.variants_total,
         alreadyComplete: true,
-        mock: !isBedrockConfigured(),
+        mock: !aiConfigured(),
         variants: variants.map((v, index) => ({ index, id: v.id, label: v.label })),
       });
     }
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
           product_id: productId,
           source_fingerprint: fingerprint,
           status: "running",
-          model: cfg.removeBgModelId,
+          model: cfg.openaiModel,
           variants_total: variants.length,
           variants_done: 0,
           variants_failed: 0,
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       jobId: job.id,
       total: variants.length,
-      mock: !isBedrockConfigured(),
+      mock: !aiConfigured(),
       variants: variants.map((v, index) => ({ index, id: v.id, label: v.label })),
     });
   } catch (err) {

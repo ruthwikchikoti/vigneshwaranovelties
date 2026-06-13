@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ikImage } from "@/lib/imagekit";
 import { displayUrl } from "@/lib/product-images";
-import { shotLabel, shotTier } from "@/lib/ai/presets";
+import { shotLabel, shotExperimental } from "@/lib/ai/presets";
 import type { AiImageJob, ProductImage } from "@/lib/supabase/types";
 
 type Props = { productId: string };
@@ -161,10 +161,10 @@ export function AiImagePanel({ productId }: Props) {
             )}
           </h2>
           <p className="text-xs text-ink/60 mt-1">
-            Removes the background and re-shoots the exact piece in a studio —
-            gradient backdrops, soft reflections &amp; shadows across white,
-            ivory, charcoal, champagne &amp; a macro detail. Same product every
-            time. Nothing goes live until you approve it.
+            Re-shoots your photo into studio, lifestyle &amp; on-model looks with
+            OpenAI — white &amp; ivory studio, marble, golden angle, a macro
+            detail and a model wearing the piece. The same piece, new scenes.
+            Nothing goes live until you approve it.
           </p>
         </div>
         <div className="flex gap-2">
@@ -198,8 +198,9 @@ export function AiImagePanel({ productId }: Props) {
 
       {mock && (
         <p className="text-xs text-champagne-deep border-l-2 border-champagne pl-3 py-2 bg-champagne/5 mb-4">
-          AWS Bedrock isn&apos;t connected yet, so these are placeholder images to
-          preview the review flow. Add AWS keys to generate real photos.
+          OpenAI isn&apos;t connected yet, so these are placeholder images to
+          preview the review flow. Add <code>OPENAI_API_KEY</code> to generate
+          real photos.
         </p>
       )}
 
@@ -315,7 +316,7 @@ function ImageGroup({
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {list.map((img) => {
           const busy = busyId === img.id;
-          const tier = shotTier(img.ai_variant);
+          const experimental = shotExperimental(img.ai_variant);
           return (
             <figure key={img.id} className="bg-ivory border border-ink/10">
               <div className="relative aspect-square bg-mist">
@@ -326,16 +327,9 @@ function ImageGroup({
                   sizes="200px"
                   className="object-cover"
                 />
-                {tier && (
-                  <span
-                    className={[
-                      "absolute top-1.5 left-1.5 smallcaps text-[0.5rem] px-1.5 py-0.5",
-                      tier === "exact"
-                        ? "bg-champagne/90 text-ink"
-                        : "bg-ink/70 text-ivory",
-                    ].join(" ")}
-                  >
-                    {tier === "exact" ? "Exact" : "Styled"}
+                {experimental && (
+                  <span className="absolute top-1.5 left-1.5 smallcaps text-[0.5rem] px-1.5 py-0.5 bg-ink/70 text-ivory">
+                    Experimental
                   </span>
                 )}
                 <button

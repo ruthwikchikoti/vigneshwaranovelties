@@ -14,7 +14,7 @@ Context for **Claude Code** (and other agents) taking over **AI-generated produc
 | i18n | **next-intl** — English (`en`) + Telugu (`te`) under `app/[locale]/` |
 | Images CDN | **ImageKit** (`lib/imagekit.ts`) — origin = Supabase public `product-images` bucket |
 | Email | Brevo (inquiry notifications) |
-| Deploy | **Cloudflare Pages** (`@cloudflare/next-on-pages`, `wrangler.toml`) |
+| Deploy | **Vercel** (zero-config Next.js; env vars in project settings) |
 | Admin | `/admin` — Supabase auth; dev bypass via `ADMIN_DEV_BYPASS=true` |
 
 **Business flow today:** Owner (father) photographs products on phone → admin uploads via `ImageUploader` → saves product → storefront shows `original_url` only. **`ai_generated_url` exists in schema but is never written or displayed.**
