@@ -4,7 +4,13 @@ import { getCmsPage } from "@/lib/admin/cms";
 import { pickCmsTitle, pickCmsBody, parseFaq, renderCmsBody } from "@/lib/cms-render";
 import { site } from "@/lib/site";
 
-export const metadata = { title: "FAQ" };
+type PageProps = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: PageProps) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "faq" });
+  return { title: t("metaTitle") };
+}
 
 export default async function FaqPage({
   params,

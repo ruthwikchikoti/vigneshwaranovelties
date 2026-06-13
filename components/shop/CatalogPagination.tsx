@@ -8,6 +8,7 @@ type Props = {
   prevLabel: string;
   nextLabel: string;
   pageLabel: (page: number, total: number) => string;
+  paginationLabel?: string;
 };
 
 function pageHref(basePath: "/shop", page: number): string {
@@ -21,6 +22,7 @@ export function CatalogPagination({
   prevLabel,
   nextLabel,
   pageLabel,
+  paginationLabel = "Pagination",
 }: Props) {
   if (totalPages <= 1) return null;
 
@@ -30,7 +32,7 @@ export function CatalogPagination({
   return (
     <nav
       className="mt-12 lg:mt-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t border-ink/10 pt-8"
-      aria-label="Pagination"
+      aria-label={paginationLabel}
     >
       <p className="text-sm text-ink/55 tabular text-center sm:text-left order-2 sm:order-1">
         {pageLabel(currentPage, totalPages)}

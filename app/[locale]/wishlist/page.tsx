@@ -1,8 +1,14 @@
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Container } from "@/components/ui/Container";
 import { WishlistView } from "@/components/wishlist/WishlistView";
 
-export const metadata = { title: "Saved pieces" };
+type PageProps = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: PageProps) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "wishlist" });
+  return { title: t("metaTitle") };
+}
 
 export default async function WishlistPage({
   params,

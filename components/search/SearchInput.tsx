@@ -2,6 +2,7 @@
 
 import { useRouter } from "@/i18n/routing";
 import { useState, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { IconSearch } from "@/components/ui/Icons";
 
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export function SearchInput({ initial = "" }: Props) {
+  const t = useTranslations("search");
   const router = useRouter();
   const [value, setValue] = useState(initial);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -37,7 +39,7 @@ export function SearchInput({ initial = "" }: Props) {
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Try 'pulse chain', 'german silver', 'pendant'…"
+        placeholder={t("placeholder")}
         className="w-full bg-transparent text-ink py-4 pl-9 pr-24 text-[1.05rem] outline-none placeholder:text-ink/35"
         enterKeyHint="search"
         autoComplete="off"
@@ -52,14 +54,14 @@ export function SearchInput({ initial = "" }: Props) {
           }}
           className="absolute right-20 top-1/2 -translate-y-1/2 smallcaps text-[0.55rem] text-ink/50 hover:text-ink"
         >
-          Clear
+          {t("clear")}
         </button>
       )}
       <button
         type="submit"
         className="absolute right-0 top-1/2 -translate-y-1/2 smallcaps text-[0.6rem] text-ink/80 hover:text-ink py-2 px-3"
       >
-        Search
+        {t("submit")}
       </button>
     </form>
   );

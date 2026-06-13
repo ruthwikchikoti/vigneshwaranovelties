@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { IconClose } from "@/components/ui/Icons";
 
@@ -19,6 +20,7 @@ const sizes = {
 };
 
 export function Modal({ open, onClose, children, title, size = "md" }: Props) {
+  const t = useTranslations("common");
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     const onEsc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -61,7 +63,7 @@ export function Modal({ open, onClose, children, title, size = "md" }: Props) {
               type="button"
               onClick={onClose}
               className="p-2 -mr-2 text-ink"
-              aria-label="Close"
+              aria-label={t("close")}
             >
               <IconClose />
             </button>

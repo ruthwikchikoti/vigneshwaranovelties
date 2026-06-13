@@ -28,6 +28,8 @@ export default async function CategoryPage({ params }: PageProps) {
   const products = applyCategoryOffers(rawProducts, offers);
   const otherCategories = (await getCategories()).filter((c) => c.id !== category.id);
   const t = await getTranslations("product");
+  const tSections = await getTranslations("sections");
+  const tShop = await getTranslations("shop");
   const localeKey = locale as "en" | "te";
   const name = localize(category, localeKey, "name");
   const description = localize(category, localeKey, "description");
@@ -50,7 +52,7 @@ export default async function CategoryPage({ params }: PageProps) {
 
         <div className="relative h-full flex items-end pb-12 lg:pb-20">
           <Container size="xl">
-            <p className="smallcaps text-[0.6rem] text-champagne mb-3">Collection</p>
+            <p className="smallcaps text-[0.6rem] text-champagne mb-3">{tSections("collection")}</p>
             <h1 className="font-display text-[2.5rem] sm:text-[4rem] lg:text-[5.5rem] text-ivory leading-none mb-4">
               {name}
             </h1>
@@ -66,9 +68,9 @@ export default async function CategoryPage({ params }: PageProps) {
         <Container size="xl">
           <div className="flex justify-between items-center mb-10">
             <p className="text-ink/60 text-sm tabular">
-              {products.length} {products.length === 1 ? "piece" : "pieces"}
+              {products.length === 1 ? tShop("countLabel", { count: products.length }) : tShop("countLabelPlural", { count: products.length })}
             </p>
-            <p className="smallcaps text-[0.6rem] text-ink/50">All curated</p>
+            <p className="smallcaps text-[0.6rem] text-ink/50">{t("allCurated")}</p>
           </div>
 
           {products.length > 0 ? (
@@ -86,8 +88,8 @@ export default async function CategoryPage({ params }: PageProps) {
         <section className="py-16 lg:py-24 bg-mist-soft border-t border-ink/5">
           <Container size="xl">
             <SectionHeader
-              eyebrow="Continue browsing"
-              title="Other collections"
+              eyebrow={tSections("continueBrowsing")}
+              title={tSections("otherCollections")}
               align="left"
             />
             <div className="mt-12">

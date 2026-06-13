@@ -127,7 +127,7 @@ export function Hero({
                 key={slide.id}
                 type="button"
                 onClick={() => setIndex(i)}
-                aria-label={`Show banner ${i + 1} of ${safeSlides.length}`}
+                aria-label={t("showBanner", { current: i + 1, total: safeSlides.length })}
                 aria-current={i === index}
                 className={cn(
                   "h-[3px] transition-all duration-500",

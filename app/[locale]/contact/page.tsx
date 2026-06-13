@@ -59,7 +59,7 @@ export default async function ContactPage({
             <br />
             {site.address.line2}
             <br />
-            {site.address.line3}
+            {t("addressLine3")}
             <br />
             {site.address.city}
           </p>
@@ -69,9 +69,9 @@ export default async function ContactPage({
             {t("hours")}
           </p>
           <p className="font-display text-[1.4rem] lg:text-[1.5rem] text-ink leading-snug">
-            {site.hours.label}
+            {t("hoursLabel")}
             <br />
-            {site.hours.range}
+            {t("hoursRange")}
           </p>
         </div>
       </div>

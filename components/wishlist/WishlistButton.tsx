@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useWishlist } from "@/lib/wishlist-store";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ export function WishlistButton({ product_id, snapshot, size = "sm", className }:
   // Hydration guard — zustand+persist reads localStorage on mount, so on first
   // server render the state is always empty. Wait for client mount before
   // exposing the saved flag to avoid a hydration mismatch.
+  const t = useTranslations("wishlist");
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const isSaved = mounted && savedInStore;
@@ -39,7 +41,7 @@ export function WishlistButton({ product_id, snapshot, size = "sm", className }:
         type="button"
         onClick={handleClick}
         aria-pressed={isSaved}
-        aria-label={isSaved ? "Remove from saved" : "Save this piece"}
+        aria-label={isSaved ? t("removeLabel") : t("saveLabel")}
         className={cn(
           "btn-base btn-ghost",
           isSaved && "!border-vermilion !text-vermilion hover:!bg-vermilion-soft/40",
@@ -47,7 +49,7 @@ export function WishlistButton({ product_id, snapshot, size = "sm", className }:
         )}
       >
         <HeartIcon filled={isSaved} size={16} />
-        {isSaved ? "Saved" : "Save"}
+        {isSaved ? t("saved") : t("save")}
       </button>
     );
   }
@@ -57,7 +59,7 @@ export function WishlistButton({ product_id, snapshot, size = "sm", className }:
       type="button"
       onClick={handleClick}
       aria-pressed={isSaved}
-      aria-label={isSaved ? "Remove from saved" : "Save this piece"}
+      aria-label={isSaved ? t("removeLabel") : t("saveLabel")}
       className={cn(
         "absolute top-3 right-3 z-10 w-9 h-9 grid place-items-center rounded-full bg-ivory/90 backdrop-blur transition-colors",
         isSaved ? "text-vermilion" : "text-ink/55 hover:text-ink",
