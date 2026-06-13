@@ -147,7 +147,12 @@
       "name": "Please share your name",
       "mobile": "Please enter a valid 10-digit mobile",
       "generic": "Could not send right now. Please try WhatsApp."
-    }
+    },
+    "statusSaved": "Saved",
+    "statusSent": "Sent",
+    "queued": "Your order has been saved and will be sent automatically when you're back online.",
+    "pendingBanner": "You have {count} pending orders — they'll send automatically when you're online.",
+    "pendingBannerOne": "Your order is saved — it'll send automatically when you're online."
   },
   "offers": {
     "title": "Offers",
