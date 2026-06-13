@@ -1,16 +1,19 @@
-/* Vigneshwara Novelties - minimal offline service worker.
+"use strict";
+
+/* Vigneshwara Novelties - offline + push service worker.
  *
  * What it does:
  *   - Precaches the home page + brand icons on install
  *   - Network-first for HTML (public storefront only; admin is not intercepted)
  *   - Cache-first for /brand/* and /_next/static/* (immutable, hashed)
+ *   - Receives push notifications and shows them to the user
  *
  * What it intentionally doesn't do:
  *   - Cache API responses (those depend on auth + live data)
- *   - Background sync, push notifications, periodic sync
+ *   - Background sync, periodic sync
  */
 
-const CACHE = "vn-v3";
+const CACHE = "vn-v4";
 const PRECACHE = [
   "/",
   "/shop",
@@ -103,3 +106,49 @@ async function networkFirst(req) {
     });
   }
 }
+
+/* ── Push notifications ─────────────────────────────────── */
+
+self.addEventListener("push", (event) => {
+  let title = "New inquiry";
+  let body = "A customer just submitted an inquiry.";
+  let data = {};
+
+  if (event.data) {
+    try {
+      const json = event.data.json();
+      title = json.title || title;
+      body = json.body || body;
+      data = json.data || {};
+    } catch {
+      body = event.data.text() || body;
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: "/brand/seal.png",
+      badge: "/brand/seal.png",
+      tag: "inquiry",
+      renotify: true,
+      data: { url: "/admin/inquiries", ...data },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/admin/inquiries";
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes("/admin") && "focus" in client) {
+          return client.navigate(url).then(() => client.focus());
+        }
+      }
+      return clients.openWindow(url);
+    })
+  );
+});

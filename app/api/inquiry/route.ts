@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { inquirySchema } from "@/lib/validations/inquiry";
 import { createServiceClient } from "@/lib/supabase/server";
 import { sendInquiryEmail } from "@/lib/email";
+import { notifyAdminsPush } from "@/lib/push-notify";
 
 export const runtime = "edge";
 
@@ -61,6 +62,13 @@ export async function POST(req: Request) {
   // 2. Fire-and-forget the notification email. Failures are logged and
   // surfaced in the response so admins can spot misconfiguration, but they
   // never block the customer — the inquiry is already persisted.
+  const itemCount = inquiry.items.reduce((s, i) => s + i.qty, 0);
+
+  // 3. Push notification to admin devices — truly fire-and-forget so a
+  //    slow / unreachable push service never delays the customer response.
+  notifyAdminsPush({ customer_name: inquiry.customer_name, item_count: itemCount })
+    .catch((err) => console.error("[push] unexpected:", err));
+
   const emailResult = await sendInquiryEmail(inquiry);
 
   return NextResponse.json({ ok: true, email: emailResult });

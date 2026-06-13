@@ -14,9 +14,17 @@ export function RegisterSW() {
         : (cb: () => void) => setTimeout(cb, 1000);
 
     idle(() => {
-      navigator.serviceWorker.register("/sw.js").catch((err) => {
-        console.warn("[pwa] service worker registration failed:", err);
-      });
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => {
+          // Force an update check so existing installs pick up new SW handlers
+          // (e.g. the push/notificationclick listeners) without waiting on the
+          // browser's own heuristic.
+          registration.update().catch(() => {});
+        })
+        .catch((err) => {
+          console.warn("[pwa] service worker registration failed:", err);
+        });
     });
   }, []);
 

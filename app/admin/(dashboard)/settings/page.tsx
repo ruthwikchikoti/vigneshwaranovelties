@@ -11,6 +11,8 @@ import { AnnouncementForm } from "@/components/admin/AnnouncementForm";
 import { HeroSettingsForm } from "@/components/admin/HeroSettingsForm";
 import { HomeEditorialForm } from "@/components/admin/HomeEditorialForm";
 
+import { PushToggleWrapper } from "@/components/pwa/PushToggleWrapper";
+
 export const metadata = { title: "Settings · Admin" };
 
 export default async function SettingsPage() {
@@ -23,6 +25,10 @@ export default async function SettingsPage() {
     process.env.BREVO_API_KEY &&
       process.env.BREVO_FROM_EMAIL &&
       process.env.INQUIRY_NOTIFICATION_EMAIL
+  );
+  const vapidReady = Boolean(
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
+      process.env.VAPID_PRIVATE_KEY
   );
 
   return (
@@ -100,6 +106,19 @@ export default async function SettingsPage() {
         ) : (
           <p className="text-sm text-ink/75 leading-relaxed">
             Email notifications aren&apos;t set up yet — ask your developer to connect them.
+          </p>
+        )}
+      </section>
+
+      <section className="bg-mist-soft border border-ink/10 p-5 lg:p-6">
+        <h2 className="font-display text-[1.2rem] text-ink mb-1">Push notifications</h2>
+        <p className="text-sm text-ink/65 mb-5">
+          Get instant alerts on this device when a customer submits an inquiry.
+          Works best with the installed app.
+        </p>
+        {vapidReady ? <PushToggleWrapper /> : (
+          <p className="text-sm text-ink/75 leading-relaxed">
+            Push notifications aren&apos;t set up yet — ask your developer to add VAPID keys.
           </p>
         )}
       </section>
