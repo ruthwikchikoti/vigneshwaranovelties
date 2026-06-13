@@ -21,8 +21,10 @@ vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.supabase.co");
 let rpcMock: Mock;
 let fromMock: Mock;
 
+// searchProducts uses the service-role client (the whole data module does, so
+// unstable_cache can run without request-scoped cookies()).
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({
+  createServiceClient: vi.fn(() => ({
     rpc: (...args: unknown[]) => rpcMock(...args),
     from: (...args: unknown[]) => fromMock(...args),
   })),

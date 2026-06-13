@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAdminUser } from "@/lib/admin/auth";
 import { CMS_PAGE_SLUGS, upsertCmsPage, type CmsPageSlug } from "@/lib/admin/cms";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -36,6 +37,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
 
   try {
     await upsertCmsPage(slug, parsed.data);
+    revalidateCache(CACHE_TAGS.cms);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[admin] cms upsert:", err);

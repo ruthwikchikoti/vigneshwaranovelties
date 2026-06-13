@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { bannerPayloadSchema } from "@/lib/validations/category";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
     const supabase = createServiceClient();
     const { data, error } = await supabase.from("banners").insert(clean(parsed.data)).select().single();
     if (error) throw error;
+    revalidateCache(CACHE_TAGS.banners);
     return NextResponse.json({ ok: true, id: data.id });
   } catch (err) {
     console.error("[admin] banner create:", err);

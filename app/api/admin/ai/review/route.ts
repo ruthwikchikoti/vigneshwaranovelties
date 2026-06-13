@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { reviewSchema } from "@/lib/validations/ai";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -52,6 +53,8 @@ export async function POST(req: Request) {
         .delete()
         .eq("id", imageId);
       if (delErr) throw delErr;
+      // A deleted approved image was storefront-visible — refresh product cache.
+      revalidateCache(CACHE_TAGS.products);
       return NextResponse.json({ ok: true, deleted: true });
     }
 
@@ -64,6 +67,8 @@ export async function POST(req: Request) {
       .single();
     if (updErr) throw updErr;
 
+    // Approving/rejecting changes which images appear in the public gallery.
+    revalidateCache(CACHE_TAGS.products);
     return NextResponse.json({ ok: true, image: updated });
   } catch (err) {
     console.error("[admin] ai review:", err);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { productPayloadSchema } from "@/lib/validations/product";
+import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
 export const runtime = "edge";
 
@@ -47,6 +48,7 @@ export async function PATCH(
       if (imgErr) throw imgErr;
     }
 
+    revalidateCache(CACHE_TAGS.products);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[admin] product update:", err);
@@ -69,6 +71,7 @@ export async function DELETE(
     const supabase = createServiceClient();
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) throw error;
+    revalidateCache(CACHE_TAGS.products);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[admin] product delete:", err);
