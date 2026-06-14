@@ -24,7 +24,7 @@ export default async function EditCategoryPage({
           {category.name_en}
         </h1>
       </div>
-      <CategoryForm category={category} />
+      <CategoryForm category={category} categories={categories} />
     </div>
   );
 }

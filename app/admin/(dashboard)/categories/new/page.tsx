@@ -1,9 +1,11 @@
 import { CategoryForm } from "@/components/admin/CategoryForm";
 import { AdminBackLink } from "@/components/admin/AdminBackLink";
+import { adminGetCategories } from "@/lib/admin/queries";
 
 export const metadata = { title: "New category · Admin" };
 
-export default function NewCategoryPage() {
+export default async function NewCategoryPage() {
+  const categories = await adminGetCategories();
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div>
@@ -13,7 +15,7 @@ export default function NewCategoryPage() {
           Add Category
         </h1>
       </div>
-      <CategoryForm />
+      <CategoryForm categories={categories} />
     </div>
   );
 }

@@ -12,9 +12,9 @@ import { slugify } from "@/lib/utils";
 import { categoryPayloadSchema, type CategoryPayload } from "@/lib/validations/category";
 import type { Category } from "@/lib/supabase/types";
 
-type Props = { category?: Category };
+type Props = { category?: Category; categories?: Category[] };
 
-export function CategoryForm({ category }: Props) {
+export function CategoryForm({ category, categories = [] }: Props) {
   const router = useRouter();
   const [imageUrl, setImageUrl] = useState<string | null>(category?.image_url ?? null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(category?.banner_url ?? null);
@@ -37,8 +37,13 @@ export function CategoryForm({ category }: Props) {
       description_te: category?.description_te ?? "",
       sort_order: category?.sort_order ?? 0,
       is_active: category?.is_active ?? true,
+      parent_id: category?.parent_id ?? "",
     },
   });
+
+  // Top-level categories are the only valid parents (one level of nesting).
+  // Exclude self so a category can't be its own parent.
+  const parentOptions = categories.filter((c) => !c.parent_id && c.id !== category?.id);
 
   const onSubmit = handleSubmit(
     async (values) => {
@@ -117,6 +122,20 @@ export function CategoryForm({ category }: Props) {
           {/* sort_order is managed by drag-to-reorder on the categories list. */}
           <input type="hidden" {...register("sort_order", { valueAsNumber: true })} />
         </div>
+      </Section>
+
+      <Section
+        title="Parent category"
+        description="Leave as “None” for a main category, or pick a parent to make this a sub-category (e.g. Anklets under Pancha Loham)."
+      >
+        <select {...register("parent_id")} className={inputClass} defaultValue={category?.parent_id ?? ""}>
+          <option value="">— None (main category) —</option>
+          {parentOptions.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name_en}
+            </option>
+          ))}
+        </select>
       </Section>
 
       <Section title="Description" description="Same here — write in either language.">
