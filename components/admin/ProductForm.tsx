@@ -5,10 +5,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { ImageUploader } from "./ImageUploader";
 import { BilingualField } from "./BilingualField";
 import { slugify } from "@/lib/utils";
+import { ikImage } from "@/lib/imagekit";
+import { publicGalleryImages, displayUrl } from "@/lib/product-images";
 import type { Category, Product } from "@/lib/supabase/types";
 
 const productSchema = z.object({
@@ -157,6 +160,9 @@ export function ProductForm({ product, categories }: Props) {
         />
       </Section>
 
+      {/* What customers actually see — your photos + approved AI images. */}
+      {product && <LiveGalleryPreview product={product} />}
+
       {/* Basics */}
       <Section title="Basics" description="Type in English or Telugu — the other side fills in automatically. Edit if needed.">
         <div className="grid gap-5">
@@ -293,6 +299,53 @@ export function ProductForm({ product, categories }: Props) {
         </Button>
       </div>
     </form>
+  );
+}
+
+/**
+ * Read-only strip of everything that appears in the storefront gallery for this
+ * product: the owner's original photos plus AI images they approved in the AI
+ * Studio, in display order. Mirrors publicGalleryImages() so it matches the live
+ * site exactly. Purely a preview — managing originals stays in Photos, AI images
+ * stay in the AI Studio below.
+ */
+function LiveGalleryPreview({ product }: { product: Product }) {
+  const live = publicGalleryImages(product.images);
+  const aiCount = live.filter((i) => i.ai_status === "approved").length;
+  if (live.length <= 1 || aiCount === 0) return null;
+
+  return (
+    <Section
+      title="On the website"
+      description={`What customers see in the gallery — your photos plus ${aiCount} approved AI image${aiCount > 1 ? "s" : ""}, in order. Manage photos above and AI images in the AI Studio below.`}
+    >
+      <div className="flex gap-2 overflow-x-auto scrollbar-hidden">
+        {live.map((img, i) => (
+          <div
+            key={img.id}
+            className="relative flex-shrink-0 w-24 aspect-square bg-mist border border-ink/10"
+          >
+            <Image
+              src={ikImage(displayUrl(img), { width: 200, format: "auto" })}
+              alt=""
+              fill
+              sizes="96px"
+              className="object-cover"
+            />
+            {i === 0 && (
+              <span className="absolute bottom-0 inset-x-0 bg-ink/70 text-ivory text-[0.5rem] smallcaps text-center py-0.5">
+                Cover
+              </span>
+            )}
+            {img.ai_status === "approved" && (
+              <span className="absolute top-1 right-1 bg-champagne/90 text-ink text-[0.5rem] smallcaps px-1 py-0.5">
+                AI
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </Section>
   );
 }
 
