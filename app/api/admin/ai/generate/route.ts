@@ -56,12 +56,17 @@ export async function POST(req: Request) {
   const originals = originalImages((product as Product).images);
   if (!originals.length) return NextResponse.json({ ok: false, error: "no_source" });
 
-  // Idempotency: this shot already produced for this job → return it.
+  // Idempotency: only skip if THIS run already produced a *pending* image for
+  // this shot (i.e. a client retry of the same index). We must NOT skip when an
+  // approved/rejected image for this variant exists from a previous run — the
+  // job id is reused across "Generate again" (same source fingerprint), so
+  // otherwise already-approved shots would never regenerate.
   const { data: existingImg } = await supabase
     .from("product_images")
     .select("*")
     .eq("ai_job_id", jobId)
     .eq("ai_variant", shot.id)
+    .eq("ai_status", "pending")
     .maybeSingle();
   if (existingImg) {
     return NextResponse.json({ ok: true, skipped: true, image: existingImg });

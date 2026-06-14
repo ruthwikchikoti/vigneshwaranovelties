@@ -52,7 +52,7 @@ export const SHOTS: Shot[] = [
     experimental: true,
     quality: "medium", // keep within the 60s limit; on-model is slow at high
     instruction:
-      "Worn by an elegant Indian woman as a professional fashion-jewellery e-commerce model shot (Myntra / Ajio luxe standard), framed from the collarbone up, tasteful saree or blouse neckline, clean light-grey seamless studio background, soft beauty lighting, tack-sharp focus on the jewellery, natural realistic skin and hair.",
+      "Worn by an elegant Indian woman in TRADITIONAL attire — a rich silk saree with a matching traditional blouse, hair in a neat low bun adorned with jasmine flowers (gajra), tasteful traditional makeup with a small bindi — professional jewellery e-commerce model shot, framed from the collarbone up, warm softly-lit background, gentle beauty lighting, tack-sharp focus on the jewellery, natural realistic skin and hair.",
   },
   {
     id: "model_closeup",
@@ -60,7 +60,7 @@ export const SHOTS: Shot[] = [
     experimental: true,
     quality: "medium",
     instruction:
-      "Editorial macro of the necklace on an elegant Indian woman's neckline, the pendant and stones razor-sharp, soft flattering beauty lighting, gently blurred background, luxury jewellery campaign look.",
+      "Editorial macro of the necklace on an elegant Indian woman's neckline, she is dressed in a traditional silk saree and blouse with a small bindi, the pendant and stones razor-sharp, soft flattering beauty lighting, gently blurred background, luxury traditional-jewellery campaign look.",
   },
   {
     id: "catalog_white",
