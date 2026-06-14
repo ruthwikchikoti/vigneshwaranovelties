@@ -21,10 +21,22 @@ export async function POST(req: Request) {
   }
 
   const { images, ...product } = parsed.data;
-  product.slug = product.slug || slugify(product.title_en);
+  const baseSlug = slugify(product.slug || product.title_en) || "product";
 
   try {
     const supabase = createServiceClient();
+
+    // Auto-deduplicate the slug so two products with the same name don't 500 on
+    // the unique constraint — pick base, then base-2, base-3, …
+    const { data: existing } = await supabase
+      .from("products")
+      .select("slug")
+      .or(`slug.eq.${baseSlug},slug.like.${baseSlug}-%`);
+    const taken = new Set((existing ?? []).map((r) => r.slug));
+    let slug = baseSlug;
+    for (let n = 2; taken.has(slug); n++) slug = `${baseSlug}-${n}`;
+    product.slug = slug;
+
     const { data: row, error } = await supabase
       .from("products")
       .insert(product)
@@ -48,6 +60,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, id: row.id });
   } catch (err) {
     console.error("[admin] product create:", err);
+    const code = (err as { code?: string })?.code;
+    if (code === "23505") {
+      return NextResponse.json(
+        { error: "duplicate", message: "A product with this name already exists. Please tweak the name." },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       {
         error: "db",
