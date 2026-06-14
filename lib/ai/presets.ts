@@ -15,9 +15,10 @@ export type Shot = {
   label: string;
   /** Scene/styling instruction appended to the product subject + fidelity clause. */
   instruction: string;
-  /** Optional quality hint (unused by the Bedrock provider; kept for future
-   *  provider swaps). Bedrock control_strength is set globally in AiConfig. */
-  quality?: "low" | "medium" | "high";
+  /** Per-shot image-to-image strength (0..1). LOWER = stay more faithful to the
+   *  exact uploaded piece. Product shots use a small value so stones/metal
+   *  survive; falls back to AiConfig.bedrockStrength. */
+  strength?: number;
   /** Low-confidence shot (model wearing the piece) — badged for review. */
   experimental?: boolean;
 };
@@ -26,21 +27,21 @@ export const SHOTS: Shot[] = [
   {
     id: "macro_detail",
     label: "Macro detail",
-    quality: "medium", // medium + input_fidelity:high stays sharp and finishes fast
+    strength: 0.3, // mostly relight/recrop — keep the piece tight
     instruction:
       "Extreme macro hero close-up shot on a 100mm macro lens, the piece filling the frame at a slight three-quarter angle, shallow depth of field with every gemstone facet and the fine gold granulation tack-sharp, soft graduated neutral background, delicate catalogue reflection beneath.",
   },
   {
     id: "golden_angle",
     label: "Golden angle",
-    quality: "medium",
+    strength: 0.4,
     instruction:
       "Premium advertising hero on a dark glossy reflective surface, warm golden key light with soft elegant bokeh, the piece angled three-quarters to catch highlights along the metal.",
   },
   {
     id: "marble_lifestyle",
     label: "Marble lifestyle",
-    quality: "medium",
+    strength: 0.45,
     instruction:
       "Aspirational lifestyle still life on polished white-and-grey marble with soft natural window light and a delicate shadow, a couple of tasteful out-of-focus props (folded silk, a single bloom) at the very edge of frame, top jewellery-brand catalogue styling.",
   },
@@ -48,7 +49,7 @@ export const SHOTS: Shot[] = [
     id: "model_wear",
     label: "On model",
     experimental: true,
-    quality: "medium", // keep within the 60s limit; on-model is slow at high
+    strength: 0.65, // needs heavy change to add a person — fidelity is weaker here
     instruction:
       "Worn by an elegant Indian woman in TRADITIONAL attire — a rich silk saree with a matching traditional blouse, hair in a neat low bun adorned with jasmine flowers (gajra), tasteful traditional makeup with a small bindi — professional jewellery e-commerce model shot, framed from the collarbone up, warm softly-lit background, gentle beauty lighting, tack-sharp focus on the jewellery, natural realistic skin and hair.",
   },
@@ -56,14 +57,14 @@ export const SHOTS: Shot[] = [
     id: "model_closeup",
     label: "On model — close",
     experimental: true,
-    quality: "medium",
+    strength: 0.6,
     instruction:
       "Editorial macro of the necklace on an elegant Indian woman's neckline, she is dressed in a traditional silk saree and blouse with a small bindi, the pendant and stones razor-sharp, soft flattering beauty lighting, gently blurred background, luxury traditional-jewellery campaign look.",
   },
   {
     id: "catalog_white",
     label: "White catalogue",
-    quality: "medium",
+    strength: 0.35,
     instruction:
       "Clean e-commerce catalogue main image on a pure seamless white (#FFFFFF) background, the piece centred and filling about 85% of the frame, even shadowless softbox lighting with crisp true-to-life colour, a faint natural contact shadow — the Amazon / Flipkart main-image standard.",
   },

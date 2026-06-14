@@ -4,9 +4,9 @@ import "server-only";
  * Central config for the AI image pipeline. All values come from env so the
  * owner can tune count / model / cost caps without a code change.
  *
- * Provider: AWS Bedrock (Stability Control Structure). Keeps the current shot /
- * prompt system but re-renders each scene guided by the uploaded photo's
- * structure. Auth is AWS keys via SigV4 (aws4fetch) — see lib/ai/bedrock.ts.
+ * Provider: AWS Bedrock (Stability). DEFAULT mode is image-to-image, which keeps
+ * the uploaded photo's pixels and restyles by `strength` (low = faithful) so the
+ * exact piece survives. Auth is AWS keys via SigV4 (aws4fetch) — see bedrock.ts.
  */
 export type AiConfig = {
   enabled: boolean;
@@ -14,9 +14,13 @@ export type AiConfig = {
   maxRetries: number;
   storagePrefix: string;
   region: string;
-  /** Bedrock image model — a cross-region inference profile id (us.*). */
+  /** Bedrock image model id (use the "us." prefix for inference profiles). */
   bedrockModelId: string;
-  /** 0..1 — higher = stay closer to the uploaded piece's structure. */
+  /** "image-to-image" (keeps pixels, DEFAULT) | "control-structure" (edges only). */
+  bedrockMode: string;
+  /** image-to-image 0..1 — LOWER = stay closer to the exact uploaded piece. */
+  bedrockStrength: number;
+  /** control-structure 0..1 — higher = follow the photo's structure more. */
   controlStrength: number;
   accessKeyId: string | undefined;
   secretAccessKey: string | undefined;
@@ -45,8 +49,9 @@ export function aiConfig(): AiConfig {
     storagePrefix: (process.env.AI_STORAGE_PREFIX || "ai").replace(/^\/+|\/+$/g, ""),
     region: process.env.AWS_REGION || "us-west-2",
     bedrockModelId:
-      process.env.BEDROCK_IMAGE_MODEL_ID ||
-      "us.stability.stable-image-control-structure-v1:0",
+      process.env.BEDROCK_IMAGE_MODEL_ID || "stability.sd3-5-large-v1:0",
+    bedrockMode: process.env.BEDROCK_MODE || "image-to-image",
+    bedrockStrength: floatEnv("BEDROCK_STRENGTH", 0.35, 0, 1),
     controlStrength: floatEnv("BEDROCK_CONTROL_STRENGTH", 0.8, 0, 1),
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,

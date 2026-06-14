@@ -4,17 +4,21 @@ import { aiConfig } from "./config";
 import { base64ToBytes, bytesToBase64 } from "./bytes";
 
 /**
- * AWS Bedrock image provider. Keeps the current shot/prompt system but generates
- * via Stability "Control Structure": it re-renders a styled scene GUIDED BY the
- * uploaded photo's structure at a high control_strength, with a deterministic
- * seed so the same product + shot is reproducible. Called over aws4fetch (SigV4
- * over fetch + WebCrypto).
+ * AWS Bedrock image provider (Stability). Keeps the current shot/prompt system.
  *
- * Model is a cross-region inference profile (us.stability.*) — invoke it by its
- * profile id, not the bare on-demand model id.
+ * Two modes (env BEDROCK_MODE):
+ *  - "image-to-image" (DEFAULT): keeps the uploaded photo's PIXELS and restyles
+ *    by `strength` (low = very faithful to the exact piece, high = more change).
+ *    This is the fidelity-preserving mode — use a small strength for product
+ *    shots so the real stones/metal survive.
+ *  - "control-structure": follows only the photo's edges and repaints the rest
+ *    from the prompt (does NOT keep stone colour — kept only as a fallback).
+ *
+ * Called over aws4fetch (SigV4 over fetch + WebCrypto). Model ids that are
+ * cross-region inference profiles must use the "us." prefix.
  */
 
-const MAX_SOURCE_BYTES = 9_000_000; // control-structure cap is ~9.4M pixels
+const MAX_SOURCE_BYTES = 9_000_000;
 
 function bedrockClient(): AwsClient {
   const cfg = aiConfig();
@@ -50,25 +54,26 @@ function seedFor(input: string): number {
 }
 
 const NEGATIVE_PROMPT =
-  "plain metal, blank pendant, missing stones, removed gemstones, recoloured stones, " +
+  "different jewellery, altered design, missing stones, removed gemstones, recoloured stones, " +
   "wrong colour, extra jewellery, duplicated pendant, text, watermark, logo, deformed, " +
   "distorted, low quality, blurry";
 
 export type GeneratedImage = { bytes: Uint8Array; contentType: "image/png"; ext: "png" };
 
-type ControlStructureResponse = {
+type StabilityResponse = {
   images?: string[];
   finish_reasons?: (string | null)[];
 };
 
 /**
- * Re-render the source per `prompt` → generated PNG bytes. Throws a trimmed
- * error on HTTP failure / safety block / missing image so the generate route's
- * retry loop can log and continue.
+ * Re-render the source per `prompt`. `strength` (image-to-image only) overrides
+ * the global default — lower keeps the piece more faithful. Throws a trimmed
+ * error on HTTP failure / safety block / missing image.
  */
 export async function generateImage(
   source: { bytes: Uint8Array; mime: string },
-  prompt: string
+  prompt: string,
+  opts: { strength?: number } = {}
 ): Promise<GeneratedImage> {
   const cfg = aiConfig();
   const client = bedrockClient();
@@ -76,17 +81,32 @@ export async function generateImage(
     cfg.bedrockModelId
   )}/invoke`;
 
+  const seed = seedFor(prompt);
+  const body =
+    cfg.bedrockMode === "control-structure"
+      ? {
+          image: bytesToBase64(source.bytes),
+          prompt,
+          negative_prompt: NEGATIVE_PROMPT,
+          control_strength: cfg.controlStrength,
+          seed,
+          output_format: "png",
+        }
+      : {
+          // image-to-image: keep the uploaded pixels, restyle by strength.
+          mode: "image-to-image",
+          image: bytesToBase64(source.bytes),
+          prompt,
+          negative_prompt: NEGATIVE_PROMPT,
+          strength: opts.strength ?? cfg.bedrockStrength,
+          seed,
+          output_format: "png",
+        };
+
   const res = await client.fetch(endpoint, {
     method: "POST",
     headers: { "content-type": "application/json", accept: "application/json" },
-    body: JSON.stringify({
-      image: bytesToBase64(source.bytes),
-      prompt,
-      negative_prompt: NEGATIVE_PROMPT,
-      control_strength: cfg.controlStrength,
-      seed: seedFor(prompt),
-      output_format: "png",
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
@@ -94,7 +114,7 @@ export async function generateImage(
     throw new Error(`Bedrock ${res.status}: ${detail.slice(0, 400) || res.statusText}`);
   }
 
-  const json = (await res.json()) as ControlStructureResponse;
+  const json = (await res.json()) as StabilityResponse;
   const reason = json.finish_reasons?.[0];
   if (reason) throw new Error(`Image blocked: ${reason}`);
   const b64 = json.images?.[0];

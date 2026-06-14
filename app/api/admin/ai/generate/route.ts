@@ -18,7 +18,7 @@ const BUCKET = "product-images";
 
 /**
  * Produce ONE variant for a job: re-shoot the product's primary photo into the
- * shot's look with Google Gemini, upload the result, and record a pending
+ * shot's look with AWS Bedrock, upload the result, and record a pending
  * product_images row for the owner to review.
  *
  * Failures return HTTP 200 { ok: false } so the client keeps going through the
@@ -100,7 +100,8 @@ export async function POST(req: Request) {
         ext = source.mime === "image/jpeg" ? "jpg" : source.mime === "image/webp" ? "webp" : "png";
         mock = true;
       } else {
-        const result = await generateImage(source, prompt);
+        // Per-shot image-to-image strength (lower = more faithful to the piece).
+        const result = await generateImage(source, prompt, { strength: shot.strength });
         outBytes = result.bytes;
         contentType = result.contentType;
         ext = result.ext;
