@@ -47,6 +47,7 @@ export function ProductForm({ product, categories }: Props) {
     product?.images?.map((i) => i.original_url) ?? []
   );
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Derive initial discount % from existing product (if any).
@@ -144,6 +145,25 @@ export function ProductForm({ product, categories }: Props) {
       setError(msg || "Please fill in the highlighted fields.");
     }
   );
+
+  const onDelete = async () => {
+    if (!product) return;
+    if (!window.confirm(`Delete "${product.title_en}"? This can't be undone.`)) return;
+    setError(null);
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message ?? data.error ?? "Could not delete");
+      }
+      router.push("/admin/products");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete");
+      setDeleting(false);
+    }
+  };
 
   const inputClass =
     "w-full bg-ivory border border-ink/15 focus:border-ink py-2.5 px-3 text-ink outline-none transition-colors text-sm";
@@ -294,9 +314,19 @@ export function ProductForm({ product, categories }: Props) {
 
       {/* Sticky save bar */}
       <div className="sticky bottom-[60px] lg:bottom-0 -mx-4 sm:mx-0 bg-ivory/95 backdrop-blur border-t border-ink/10 px-4 py-3 flex gap-3 z-10">
-        <Button type="submit" variant="ink" disabled={submitting} fullWidth>
+        <Button type="submit" variant="ink" disabled={submitting || deleting} fullWidth>
           {submitting ? "Saving…" : product ? "Save changes" : "Create product"}
         </Button>
+        {product && (
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={submitting || deleting}
+            className="flex-shrink-0 px-4 border border-cognac/40 text-cognac text-sm smallcaps hover:bg-cognac hover:text-ivory transition-colors disabled:opacity-40"
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </button>
+        )}
       </div>
     </form>
   );
