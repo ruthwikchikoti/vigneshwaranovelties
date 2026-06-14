@@ -52,11 +52,11 @@ export async function POST(req: Request) {
     }
 
     const variants = selectShots(cfg.imagesPerProduct);
-    // Include the OpenAI model so switching models busts the cache.
+    // Include the Bedrock model so switching models busts the cache.
     const fingerprint = await sourceFingerprint(
       originals.map((i) => i.original_url),
       variants.length,
-      cfg.openaiModel
+      cfg.bedrockModelId
     );
 
     // Look for an existing job with this exact source fingerprint.
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
           product_id: productId,
           source_fingerprint: fingerprint,
           status: "running",
-          model: cfg.openaiModel,
+          model: cfg.bedrockModelId,
           variants_total: variants.length,
           variants_done: 0,
           variants_failed: 0,
