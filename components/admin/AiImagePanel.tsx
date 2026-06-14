@@ -162,8 +162,8 @@ export function AiImagePanel({ productId }: Props) {
           </h2>
           <p className="text-xs text-ink/60 mt-1">
             Re-shoots your photo into close-up, lifestyle &amp; on-model looks
-            with AWS Bedrock — a macro detail, a golden angle, a marble lifestyle
-            and the piece worn on a model (close + portrait). The same piece, new
+            with OpenAI — a macro detail, a golden angle, a marble lifestyle and
+            the piece worn on a model (close + portrait). The same piece, new
             scenes. Nothing goes live until you approve it.
           </p>
         </div>
@@ -198,8 +198,9 @@ export function AiImagePanel({ productId }: Props) {
 
       {mock && (
         <p className="text-xs text-champagne-deep border-l-2 border-champagne pl-3 py-2 bg-champagne/5 mb-4">
-          AWS Bedrock isn&apos;t connected yet, so these are placeholder images
-          to preview the review flow. Add your AWS keys to generate real photos.
+          OpenAI isn&apos;t connected yet, so these are placeholder images to
+          preview the review flow. Add <code>OPENAI_API_KEY</code> to generate
+          real photos.
         </p>
       )}
 

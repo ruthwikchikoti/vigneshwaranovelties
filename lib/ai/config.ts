@@ -4,35 +4,36 @@ import "server-only";
  * Central config for the AI image pipeline. All values come from env so the
  * owner can tune count / model / cost caps without a code change.
  *
- * Provider: AWS Bedrock (Stability Control Structure). Keeps the current shot /
- * prompt system but re-renders each scene guided by the uploaded photo's
- * structure. Auth is AWS keys via SigV4 (aws4fetch) — see lib/ai/bedrock.ts.
+ * The pipeline runs on OpenAI's image **edit** endpoint (gpt-image-1): it takes
+ * the owner's uploaded photo + a text instruction and re-shoots the SAME piece
+ * into a new look (studio / lifestyle / on-model). A plain Bearer-token REST
+ * call that works on the edge runtime.
  */
 export type AiConfig = {
   enabled: boolean;
   imagesPerProduct: number;
   maxRetries: number;
   storagePrefix: string;
-  region: string;
-  /** Bedrock image model — a cross-region inference profile id (us.*). */
-  bedrockModelId: string;
-  /** 0..1 — higher = stay closer to the uploaded piece's structure. */
-  controlStrength: number;
-  accessKeyId: string | undefined;
-  secretAccessKey: string | undefined;
-  sessionToken: string | undefined;
+  /** OpenAI image model id, e.g. "gpt-image-1". */
+  openaiModel: string;
+  /** Output size, e.g. "1024x1024" | "1024x1536" | "1536x1024" | "auto". */
+  openaiSize: string;
+  /** Default render quality / cost knob: "low" | "medium" | "high" | "auto".
+   *  Per-shot overrides in lib/ai/presets.ts win over this. */
+  openaiQuality: string;
+  /** How hard to preserve the input photo's details: "high" keeps the exact
+   *  piece (best for jewellery); "low" lets the model reinterpret more. */
+  openaiInputFidelity: string;
+  /** WebP output compression 1-100 (smaller files → faster storefront). */
+  openaiCompression: number;
+  /** OpenAI API key. Absent → dev mock mode. */
+  openaiApiKey: string | undefined;
 };
 
 function intEnv(key: string, fallback: number, min: number, max: number): number {
   const raw = Number(process.env[key]);
   if (!Number.isFinite(raw)) return fallback;
   return Math.max(min, Math.min(max, Math.floor(raw)));
-}
-
-function floatEnv(key: string, fallback: number, min: number, max: number): number {
-  const raw = Number(process.env[key]);
-  if (!Number.isFinite(raw)) return fallback;
-  return Math.max(min, Math.min(max, raw));
 }
 
 export function aiConfig(): AiConfig {
@@ -43,29 +44,22 @@ export function aiConfig(): AiConfig {
     imagesPerProduct: intEnv("AI_IMAGES_PER_PRODUCT", 5, 1, 8),
     maxRetries: intEnv("AI_MAX_RETRIES", 2, 0, 5),
     storagePrefix: (process.env.AI_STORAGE_PREFIX || "ai").replace(/^\/+|\/+$/g, ""),
-    region: process.env.AWS_REGION || "us-west-2",
-    bedrockModelId:
-      process.env.BEDROCK_IMAGE_MODEL_ID ||
-      "us.stability.stable-image-control-structure-v1:0",
-    controlStrength: floatEnv("BEDROCK_CONTROL_STRENGTH", 0.8, 0, 1),
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    sessionToken: process.env.AWS_SESSION_TOKEN,
+    openaiModel: process.env.OPENAI_IMAGE_MODEL || "gpt-image-1",
+    openaiSize: process.env.OPENAI_IMAGE_SIZE || "1024x1024",
+    openaiQuality: process.env.OPENAI_IMAGE_QUALITY || "medium",
+    openaiInputFidelity: process.env.OPENAI_INPUT_FIDELITY || "high",
+    openaiCompression: intEnv("OPENAI_OUTPUT_COMPRESSION", 80, 1, 100),
+    openaiApiKey: process.env.OPENAI_API_KEY,
   };
 }
 
 /**
- * True when real AWS Bedrock credentials are present. When false, the pipeline
- * runs in DEV MOCK mode — it produces placeholder images (the original photo
- * unchanged) so the whole enqueue → generate → review → publish flow can be
- * exercised with zero cost and no keys.
+ * True when a real OpenAI API key is present. When false, the pipeline runs in
+ * DEV MOCK mode — it produces placeholder images (the original photo unchanged)
+ * so the whole enqueue → generate → review → publish flow can be exercised with
+ * zero cost and no key.
  */
 export function aiConfigured(): boolean {
   const c = aiConfig();
-  return Boolean(
-    c.accessKeyId &&
-      c.secretAccessKey &&
-      !c.accessKeyId.includes("placeholder") &&
-      !c.secretAccessKey.includes("placeholder")
-  );
+  return Boolean(c.openaiApiKey && !c.openaiApiKey.includes("placeholder"));
 }

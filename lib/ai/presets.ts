@@ -15,8 +15,10 @@ export type Shot = {
   label: string;
   /** Scene/styling instruction appended to the product subject + fidelity clause. */
   instruction: string;
-  /** Optional quality hint (unused by the Bedrock provider; kept for future
-   *  provider swaps). Bedrock control_strength is set globally in AiConfig. */
+  /** Per-shot OpenAI quality override ("low" | "medium" | "high"). All shots run
+   *  "medium": with input_fidelity:high it stays sharp, costs less, and finishes
+   *  inside the 60s function limit ("high" can take 60-90s and time out).
+   *  Falls back to AiConfig.openaiQuality. */
   quality?: "low" | "medium" | "high";
   /** Low-confidence shot (model wearing the piece) — badged for review. */
   experimental?: boolean;

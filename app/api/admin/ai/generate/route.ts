@@ -4,13 +4,13 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { generateSchema } from "@/lib/validations/ai";
 import { aiConfig, aiConfigured } from "@/lib/ai/config";
 import { selectShots, buildInstruction } from "@/lib/ai/presets";
-import { fetchSourceImage, generateImage } from "@/lib/ai/bedrock";
+import { fetchSourceImage, generateImage } from "@/lib/ai/openai";
 import { originalImages } from "@/lib/product-images";
 import type { Product } from "@/lib/supabase/types";
 
-// Node.js runtime (NOT edge): a Bedrock image call ships a multi-MB base64 body
-// and can take 20-40s — neither suits Next's edge runtime. maxDuration gives it
-// headroom on Vercel serverless.
+// Node.js runtime (NOT edge): an OpenAI image edit can take 30-60s, which blows
+// past Vercel's edge timeout (~25s). Node serverless lets us raise maxDuration
+// so the slower (higher-quality / on-model) shots finish instead of timing out.
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
@@ -100,7 +100,8 @@ export async function POST(req: Request) {
         ext = source.mime === "image/jpeg" ? "jpg" : source.mime === "image/webp" ? "webp" : "png";
         mock = true;
       } else {
-        const result = await generateImage(source, prompt);
+        // Per-shot quality override (cost control); WebP comes back from OpenAI.
+        const result = await generateImage(source, prompt, { quality: shot.quality });
         outBytes = result.bytes;
         contentType = result.contentType;
         ext = result.ext;
@@ -131,7 +132,7 @@ export async function POST(req: Request) {
           ai_status: "pending",
           ai_variant: shot.id,
           ai_prompt: prompt,
-          ai_model: mock ? "dev-mock" : cfg.bedrockModelId,
+          ai_model: mock ? "dev-mock" : cfg.openaiModel,
           ai_job_id: jobId,
           is_primary: false,
           sort_order: 1000 + index,
