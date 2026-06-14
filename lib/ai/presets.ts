@@ -27,23 +27,23 @@ export const SHOTS: Shot[] = [
   {
     id: "macro_detail",
     label: "Macro detail",
-    quality: "medium",
+    quality: "high", // the detail shot — craftsmanship sells the piece
     instruction:
-      "Re-photograph it as an extreme macro close-up that fills the frame, shallow depth of field, crisp focus on the stones and metal texture, soft directional light, blurred neutral background.",
+      "Extreme macro hero close-up shot on a 100mm macro lens, the piece filling the frame at a slight three-quarter angle, shallow depth of field with every gemstone facet and the fine gold granulation tack-sharp, soft graduated neutral background, delicate catalogue reflection beneath.",
   },
   {
     id: "golden_angle",
     label: "Golden angle",
     quality: "medium",
     instruction:
-      "Re-photograph it as a three-quarter angled hero on a dark reflective surface with a warm golden key light and soft bokeh, luxury advertising photograph.",
+      "Premium advertising hero on a dark glossy reflective surface, warm golden key light with soft elegant bokeh, the piece angled three-quarters to catch highlights along the metal.",
   },
   {
     id: "marble_lifestyle",
     label: "Marble lifestyle",
     quality: "medium",
     instruction:
-      "Re-photograph it resting on a polished white marble surface with soft natural daylight and a gentle shadow, premium lifestyle catalogue still life.",
+      "Aspirational lifestyle still life on polished white-and-grey marble with soft natural window light and a delicate shadow, a couple of tasteful out-of-focus props (folded silk, a single bloom) at the very edge of frame, top jewellery-brand catalogue styling.",
   },
   {
     id: "model_wear",
@@ -51,7 +51,7 @@ export const SHOTS: Shot[] = [
     experimental: true,
     quality: "high", // hardest shot — worth the top tier
     instruction:
-      "Show an elegant Indian woman wearing this exact jewellery set, soft-lit studio portrait framed from the collarbone up, tasteful saree or blouse neckline, sharp focus on the jewellery, realistic skin and fabric.",
+      "Worn by an elegant Indian woman as a professional fashion-jewellery e-commerce model shot (Myntra / Ajio luxe standard), framed from the collarbone up, tasteful saree or blouse neckline, clean light-grey seamless studio background, soft beauty lighting, tack-sharp focus on the jewellery, natural realistic skin and hair.",
   },
   {
     id: "model_closeup",
@@ -59,25 +59,41 @@ export const SHOTS: Shot[] = [
     experimental: true,
     quality: "high",
     instruction:
-      "Extreme close-up of an elegant Indian woman's neckline wearing this exact necklace, the pendant and stones in sharp focus, warm flattering light and softly blurred background, editorial jewellery photograph.",
+      "Editorial macro of the necklace on an elegant Indian woman's neckline, the pendant and stones razor-sharp, soft flattering beauty lighting, gently blurred background, luxury jewellery campaign look.",
+  },
+  {
+    id: "catalog_white",
+    label: "White catalogue",
+    quality: "medium",
+    instruction:
+      "Clean e-commerce catalogue main image on a pure seamless white (#FFFFFF) background, the piece centred and filling about 85% of the frame, even shadowless softbox lighting with crisp true-to-life colour, a faint natural contact shadow — the Amazon / Flipkart main-image standard.",
   },
 ];
 
-/** Shared fidelity + cleanliness clause every shot inherits. */
+/** Shared "shoot it like a premium jewellery e-commerce brand" direction. */
+const ECOM_CLAUSE =
+  "Professional jewellery e-commerce photography at the standard of Tanishq, " +
+  "CaratLane, BlueStone and Myntra Luxe: ultra high resolution, tack-sharp focus " +
+  "edge to edge, true-to-life gold tone and gemstone colour, clean controlled " +
+  "studio lighting with soft highlights along the metal and no harsh glare or " +
+  "colour cast, professional retouching, balanced composition.";
+
+/** Shared fidelity clause — keep the EXACT uploaded piece. */
 const FIDELITY_CLAUSE =
   "Reproduce the EXACT piece from the photo — do not beautify, redesign, smooth, " +
   "restyle or upgrade the jewellery. Keep the same shape, every gemstone and its exact " +
   "colour, every diamond, the exact metal tone and the chain/pendant layout. Do not add, " +
   "remove, recolour or distort any stones. Change only the background, lighting and camera " +
-  "angle. Photorealistic, premium catalogue quality, no text, no watermark.";
+  "angle. No text, no watermark, no logos.";
 
 /**
- * Compose the full Gemini instruction for a shot from the product subject
- * (title / category / tags) + the shot styling + the shared fidelity clause.
+ * Compose the full OpenAI edit instruction for a shot: product subject
+ * (title / category / tags) + the shot styling + the e-commerce quality bar +
+ * the fidelity clause.
  */
 export function buildInstruction(shot: Shot, subject: string): string {
   const subjectLine = subject ? `This is a photograph of ${subject}. ` : "";
-  return `${subjectLine}${shot.instruction} ${FIDELITY_CLAUSE}`;
+  return `${subjectLine}${shot.instruction} ${ECOM_CLAUSE} ${FIDELITY_CLAUSE}`;
 }
 
 /** Pick the first N shots (deterministic, aligned by index for retries). */
