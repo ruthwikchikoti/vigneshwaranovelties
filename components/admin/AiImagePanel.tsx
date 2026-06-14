@@ -161,10 +161,10 @@ export function AiImagePanel({ productId }: Props) {
             )}
           </h2>
           <p className="text-xs text-ink/60 mt-1">
-            Re-shoots your photo into studio, lifestyle &amp; on-model looks with
-            OpenAI — white &amp; ivory studio, marble, golden angle, a macro
-            detail and a model wearing the piece. The same piece, new scenes.
-            Nothing goes live until you approve it.
+            Re-shoots your photo into close-up, lifestyle &amp; on-model looks
+            with OpenAI — a macro detail, a golden angle, a marble lifestyle and
+            the piece worn on a model (close + portrait). The same piece, new
+            scenes. Nothing goes live until you approve it.
           </p>
         </div>
         <div className="flex gap-2">

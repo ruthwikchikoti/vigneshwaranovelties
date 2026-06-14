@@ -1,13 +1,13 @@
 /**
- * The shot list for the AI Studio. Every shot is a single Google Gemini
- * image-edit: the owner's uploaded photo + the shot's `instruction` → a new look
- * of the SAME piece. One engine, no background-removal or compositing.
+ * The shot list for the AI Studio. Every shot is a single OpenAI image-edit:
+ * the owner's uploaded photo + the shot's `instruction` → a new look of the
+ * SAME piece (input_fidelity=high keeps the exact stones/metal).
  *
- * Each instruction is appended to a product-derived subject line and a shared
- * fidelity clause (see buildInstruction) that tells Gemini to keep the jewellery
- * identical. Shots flagged `experimental` (currently the on-model portrait) are
- * the hardest cases — they're badged in the review grid and stay pending until
- * the owner approves them.
+ * No plain "studio" backdrops — the owner wants close-up angles, lifestyle
+ * scenes and the piece worn on a model. Each instruction is appended to a
+ * product-derived subject line and a shared fidelity clause (see
+ * buildInstruction). Shots flagged `experimental` (the on-model ones) are the
+ * hardest cases — badged in the review grid and pending until approved.
  */
 
 export type Shot = {
@@ -16,34 +16,20 @@ export type Shot = {
   /** Scene/styling instruction appended to the product subject + fidelity clause. */
   instruction: string;
   /** Per-shot OpenAI quality override ("low" | "medium" | "high"). Cost scales
-   *  steeply with quality, so plain studio shots run "low" and only the
-   *  detail/scene-heavy ones pay for more. Falls back to AiConfig.openaiQuality. */
+   *  steeply with quality; on-model shots earn the top tier, the rest "medium".
+   *  Falls back to AiConfig.openaiQuality. */
   quality?: "low" | "medium" | "high";
-  /** Low-confidence shot (e.g. model wearing the piece) — badged for review. */
+  /** Low-confidence shot (model wearing the piece) — badged for review. */
   experimental?: boolean;
 };
 
 export const SHOTS: Shot[] = [
   {
-    id: "white_studio",
-    label: "White studio",
-    quality: "low", // plain backdrop — cheapest tier is plenty
-    instruction:
-      "Re-photograph it as a professional e-commerce product shot on a clean seamless white studio background, soft even lighting, a gentle natural contact shadow beneath the piece, centred composition.",
-  },
-  {
     id: "macro_detail",
     label: "Macro detail",
-    quality: "medium", // detail matters, but input_fidelity carries the piece
-    instruction:
-      "Re-photograph it as an extreme macro close-up that fills the frame, shallow depth of field, crisp focus on the stones and metal texture, soft studio light on a neutral background.",
-  },
-  {
-    id: "marble_lifestyle",
-    label: "Marble lifestyle",
     quality: "medium",
     instruction:
-      "Re-photograph it resting on a polished white marble surface with soft natural daylight and a gentle shadow, premium lifestyle catalogue still life.",
+      "Re-photograph it as an extreme macro close-up that fills the frame, shallow depth of field, crisp focus on the stones and metal texture, soft directional light, blurred neutral background.",
   },
   {
     id: "golden_angle",
@@ -53,11 +39,11 @@ export const SHOTS: Shot[] = [
       "Re-photograph it as a three-quarter angled hero on a dark reflective surface with a warm golden key light and soft bokeh, luxury advertising photograph.",
   },
   {
-    id: "ivory_glow",
-    label: "Ivory glow",
-    quality: "low", // soft plain backdrop — cheapest tier is plenty
+    id: "marble_lifestyle",
+    label: "Marble lifestyle",
+    quality: "medium",
     instruction:
-      "Re-photograph it on a warm ivory/cream backdrop with a soft glowing key light and a subtle reflection beneath, elegant boutique catalogue look.",
+      "Re-photograph it resting on a polished white marble surface with soft natural daylight and a gentle shadow, premium lifestyle catalogue still life.",
   },
   {
     id: "model_wear",
@@ -65,7 +51,15 @@ export const SHOTS: Shot[] = [
     experimental: true,
     quality: "high", // hardest shot — worth the top tier
     instruction:
-      "Show an elegant Indian woman wearing this exact piece in a soft-lit studio portrait, tasteful saree or blouse neckline, focus on the jewellery, realistic skin and fabric.",
+      "Show an elegant Indian woman wearing this exact jewellery set, soft-lit studio portrait framed from the collarbone up, tasteful saree or blouse neckline, sharp focus on the jewellery, realistic skin and fabric.",
+  },
+  {
+    id: "model_closeup",
+    label: "On model — close",
+    experimental: true,
+    quality: "high",
+    instruction:
+      "Extreme close-up of an elegant Indian woman's neckline wearing this exact necklace, the pendant and stones in sharp focus, warm flattering light and softly blurred background, editorial jewellery photograph.",
   },
 ];
 
