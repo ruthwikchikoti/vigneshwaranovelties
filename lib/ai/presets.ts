@@ -15,8 +15,9 @@ export type Shot = {
   label: string;
   /** Scene/styling instruction appended to the product subject + fidelity clause. */
   instruction: string;
-  /** Per-shot OpenAI quality override ("low" | "medium" | "high"). Cost scales
-   *  steeply with quality; on-model shots earn the top tier, the rest "medium".
+  /** Per-shot OpenAI quality override ("low" | "medium" | "high"). All shots run
+   *  "medium": with input_fidelity:high it stays sharp, costs less, and finishes
+   *  inside the 60s function limit ("high" can take 60-90s and time out).
    *  Falls back to AiConfig.openaiQuality. */
   quality?: "low" | "medium" | "high";
   /** Low-confidence shot (model wearing the piece) — badged for review. */
@@ -27,7 +28,7 @@ export const SHOTS: Shot[] = [
   {
     id: "macro_detail",
     label: "Macro detail",
-    quality: "high", // the detail shot — craftsmanship sells the piece
+    quality: "medium", // medium + input_fidelity:high stays sharp and finishes fast
     instruction:
       "Extreme macro hero close-up shot on a 100mm macro lens, the piece filling the frame at a slight three-quarter angle, shallow depth of field with every gemstone facet and the fine gold granulation tack-sharp, soft graduated neutral background, delicate catalogue reflection beneath.",
   },
@@ -49,7 +50,7 @@ export const SHOTS: Shot[] = [
     id: "model_wear",
     label: "On model",
     experimental: true,
-    quality: "high", // hardest shot — worth the top tier
+    quality: "medium", // keep within the 60s limit; on-model is slow at high
     instruction:
       "Worn by an elegant Indian woman as a professional fashion-jewellery e-commerce model shot (Myntra / Ajio luxe standard), framed from the collarbone up, tasteful saree or blouse neckline, clean light-grey seamless studio background, soft beauty lighting, tack-sharp focus on the jewellery, natural realistic skin and hair.",
   },
@@ -57,7 +58,7 @@ export const SHOTS: Shot[] = [
     id: "model_closeup",
     label: "On model — close",
     experimental: true,
-    quality: "high",
+    quality: "medium",
     instruction:
       "Editorial macro of the necklace on an elegant Indian woman's neckline, the pendant and stones razor-sharp, soft flattering beauty lighting, gently blurred background, luxury jewellery campaign look.",
   },

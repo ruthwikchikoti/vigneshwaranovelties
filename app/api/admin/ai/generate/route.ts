@@ -8,9 +8,11 @@ import { fetchSourceImage, generateImage } from "@/lib/ai/openai";
 import { originalImages } from "@/lib/product-images";
 import type { Product } from "@/lib/supabase/types";
 
-// Gemini is a plain API-key REST call (no AWS signing, no sharp), so this runs
-// on the edge runtime like the rest of the AI routes.
-export const runtime = "edge";
+// Node.js runtime (NOT edge): an OpenAI image edit can take 30-60s, which blows
+// past Vercel's edge timeout (~25s). Node serverless lets us raise maxDuration
+// so the slower (higher-quality / on-model) shots finish instead of timing out.
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const BUCKET = "product-images";
 
