@@ -1,11 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { adminGetProducts } from "@/lib/admin/queries";
 import { getCategories } from "@/lib/data";
-import { formatINR } from "@/lib/format";
-import { cn } from "@/lib/utils";
-import { ikImage, placeholderImage } from "@/lib/imagekit";
 import { ProductFilters } from "@/components/admin/ProductFilters";
+import { ProductsGrid } from "@/components/admin/ProductsGrid";
 
 export const metadata = { title: "Products · Admin" };
 
@@ -75,57 +72,8 @@ export default async function AdminProductsPage({ searchParams }: Props) {
           )}
         </div>
       ) : (
-        <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((p) => {
-            const primary = p.images?.find((i) => i.is_primary) ?? p.images?.[0];
-            const url = primary?.original_url ?? placeholderImage(p.title_en);
-            const price = p.discount_price_inr ?? p.price_inr;
-            return (
-              <li key={p.id} className="bg-ivory border border-ink/10">
-                <Link href={`/admin/products/${p.id}`} className="block">
-                  <div className="relative aspect-[4/5] bg-mist overflow-hidden">
-                    <Image
-                      src={ikImage(url, { width: 600 })}
-                      alt={p.title_en}
-                      fill
-                      sizes="(min-width: 1024px) 30vw, 50vw"
-                      className="object-cover"
-                    />
-                    {!p.is_active && (
-                      <div className="absolute inset-0 bg-ivory/70 grid place-items-center">
-                        <span className="smallcaps text-[0.6rem] text-ink">Inactive</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4 flex flex-col gap-1">
-                    <h3 className="font-medium text-ink line-clamp-2">{p.title_en}</h3>
-                    <p className="tabular text-sm text-ink/70">{formatINR(price)}</p>
-                    <div className="flex gap-1.5 flex-wrap mt-1.5">
-                      {p.is_featured && <Tag>Featured</Tag>}
-                      {p.is_trending && <Tag>Trending</Tag>}
-                      {p.is_new_arrival && <Tag>New</Tag>}
-                      {p.has_sale_badge && <Tag tone="sale">Sale</Tag>}
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <ProductsGrid products={filtered} />
       )}
     </div>
-  );
-}
-
-function Tag({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "sale" }) {
-  return (
-    <span
-      className={cn(
-        "smallcaps text-[0.5rem] px-1.5 py-0.5",
-        tone === "sale" ? "bg-cognac/10 text-cognac" : "bg-ink/5 text-ink/70"
-      )}
-    >
-      {children}
-    </span>
   );
 }

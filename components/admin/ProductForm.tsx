@@ -9,6 +9,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { ImageUploader } from "./ImageUploader";
 import { BilingualField } from "./BilingualField";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { slugify } from "@/lib/utils";
 import { ikImage } from "@/lib/imagekit";
 import { publicGalleryImages, displayUrl } from "@/lib/product-images";
@@ -48,6 +49,7 @@ export function ProductForm({ product, categories }: Props) {
   );
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Derive initial discount % from existing product (if any).
@@ -148,7 +150,7 @@ export function ProductForm({ product, categories }: Props) {
 
   const onDelete = async () => {
     if (!product) return;
-    if (!window.confirm(`Delete "${product.title_en}"? This can't be undone.`)) return;
+    setConfirmingDelete(false);
     setError(null);
     setDeleting(true);
     try {
@@ -320,7 +322,7 @@ export function ProductForm({ product, categories }: Props) {
         {product && (
           <button
             type="button"
-            onClick={onDelete}
+            onClick={() => setConfirmingDelete(true)}
             disabled={submitting || deleting}
             className="flex-shrink-0 px-4 border border-cognac/40 text-cognac text-sm smallcaps hover:bg-cognac hover:text-ivory transition-colors disabled:opacity-40"
           >
@@ -328,6 +330,19 @@ export function ProductForm({ product, categories }: Props) {
           </button>
         )}
       </div>
+
+      {product && (
+        <ConfirmDialog
+          open={confirmingDelete}
+          title="Delete this product?"
+          description={`"${product.title_en}" will be permanently removed from the site. This can't be undone.`}
+          confirmLabel="Delete product"
+          variant="danger"
+          busy={deleting}
+          onCancel={() => setConfirmingDelete(false)}
+          onConfirm={onDelete}
+        />
+      )}
     </form>
   );
 }
