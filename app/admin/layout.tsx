@@ -25,7 +25,7 @@ export const runtime = "edge";
 export const metadata: Metadata = {
   title: "Admin · Vigneshwara Novelties",
   robots: { index: false, follow: false },
-  manifest: "/manifest.webmanifest",
+  manifest: "/admin-manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

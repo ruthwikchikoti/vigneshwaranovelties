@@ -3,6 +3,7 @@
   "exclude": [
     "/sw.js",
     "/manifest.webmanifest",
+    "/admin-manifest.webmanifest",
     "/brand/*",
     "/fonts/*"
   ]
