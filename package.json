@@ -9,6 +9,7 @@
     "test": "vitest run",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "check:env": "tsx scripts/check-env.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "storage:setup": "tsx scripts/setup-storage.ts",
     "db:apply": "echo 'Run supabase/migrations/0001_initial.sql in your Supabase SQL editor (then optionally seed.sql).'"
