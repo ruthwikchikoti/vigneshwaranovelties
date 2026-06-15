@@ -72,7 +72,8 @@ export function ProductCard({ product, variant = "default", priority }: Props) {
             alt=""
             fill
             sizes={sizes}
-            className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            loading="lazy"
+            className="hidden lg:block object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
             aria-hidden
           />
         ) : null}
