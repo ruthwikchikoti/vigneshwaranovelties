@@ -52,6 +52,11 @@ export function ProductForm({ product, categories }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // AI description drafting (Bedrock Nova Lite → EN, MyMemory → TE).
+  const [descLoading, setDescLoading] = useState(false);
+  const [descError, setDescError] = useState<string | null>(null);
+  const [descNote, setDescNote] = useState<string | null>(null);
+
   // Derive initial discount % from existing product (if any).
   const initialDiscountPct =
     product?.discount_price_inr && product.price_inr
@@ -108,6 +113,66 @@ export function ProductForm({ product, categories }: Props) {
   const titleTe = watch("title_te") ?? "";
   const descEn = watch("description_en") ?? "";
   const descTe = watch("description_te") ?? "";
+
+  // Draft EN + TE descriptions from the uploaded photos. Pass `urls` explicitly
+  // when called straight after an upload (state hasn't committed yet).
+  async function generateDescription(urlsArg?: string[]) {
+    const urls = urlsArg ?? imageUrls;
+    if (!urls.length || descLoading) return;
+    setDescError(null);
+    setDescNote(null);
+    setDescLoading(true);
+    try {
+      const res = await fetch("/api/admin/ai/describe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: urls,
+          title: watch("title_en") || undefined,
+          category: categories.find((c) => c.id === watch("category_id"))?.name_en || undefined,
+          tags: watch("tags")?.split(",").map((t) => t.trim()).filter(Boolean),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      // No Bedrock key configured — quietly let him write it himself.
+      if (data?.configured === false) {
+        setDescNote("Auto-description isn't set up yet — please write it below.");
+        return;
+      }
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error ?? "Couldn't generate a description");
+      }
+      // Description is the headline output — always apply (a Regenerate should
+      // refresh it). Title & tags are only *suggestions*: fill them when blank so
+      // we never overwrite something he deliberately typed.
+      if (data.description_en) setValue("description_en", data.description_en, { shouldDirty: true });
+      if (data.description_te) setValue("description_te", data.description_te, { shouldDirty: true });
+      if (data.title_en && !watch("title_en")?.trim()) {
+        setValue("title_en", data.title_en, { shouldDirty: true, shouldValidate: true });
+      }
+      if (data.title_te && !watch("title_te")?.trim()) {
+        setValue("title_te", data.title_te, { shouldDirty: true });
+      }
+      if (Array.isArray(data.tags) && data.tags.length && !watch("tags")?.trim()) {
+        setValue("tags", data.tags.join(", "), { shouldDirty: true });
+      }
+    } catch (e) {
+      setDescError(e instanceof Error ? e.message : "Couldn't generate a description");
+    } finally {
+      setDescLoading(false);
+    }
+  }
+
+  // When photos are added the FIRST time and the description is still blank,
+  // auto-draft it — "the moment he uploads, it generates." Re-uploads don't
+  // re-trigger (he uses the Regenerate button), so we never clobber edits.
+  function handleImagesChange(urls: string[]) {
+    const wasEmpty = imageUrls.length === 0;
+    setImageUrls(urls);
+    if (wasEmpty && urls.length > 0 && !descEn.trim() && !descLoading) {
+      void generateDescription(urls);
+    }
+  }
 
   const onSubmit = handleSubmit(
     async (values) => {
@@ -192,7 +257,7 @@ export function ProductForm({ product, categories }: Props) {
       <Section title="Photos" description="At least one. Tap the camera to take a new photo.">
         <ImageUploader
           urls={imageUrls}
-          onChange={setImageUrls}
+          onChange={handleImagesChange}
           max={6}
         />
       </Section>
@@ -330,7 +395,30 @@ export function ProductForm({ product, categories }: Props) {
       </Section>
 
       {/* Description */}
-      <Section title="Description" description="Same here — write in either language and we'll fill the other.">
+      <Section title="Description" description="The ✨ button reads your photos and drafts a title, tags and description (English + Telugu). It only fills the title & tags if they're still blank, so it won't overwrite what you typed. Review everything, then save.">
+        <div className="mb-4 flex items-center gap-3 flex-wrap">
+          <button
+            type="button"
+            onClick={() => void generateDescription()}
+            disabled={descLoading || imageUrls.length === 0}
+            className="smallcaps text-[0.6rem] tracking-[0.18em] border border-champagne-deep/40 bg-champagne/10 hover:bg-champagne/25 px-3 py-1.5 text-ink/80 hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2"
+            title={imageUrls.length === 0 ? "Add a photo first" : "Generate a description from the photos"}
+          >
+            {descLoading ? (
+              <>
+                <span className="inline-block w-2.5 h-2.5 border border-ink/40 border-t-transparent rounded-full animate-spin" />
+                Reading photo…
+              </>
+            ) : (
+              <>✨ {descEn.trim() ? "Regenerate from photos" : "Generate from photos"}</>
+            )}
+          </button>
+          {imageUrls.length === 0 && (
+            <span className="text-[0.65rem] text-ink/50">Add a photo above to enable this.</span>
+          )}
+          {descNote && <span className="text-[0.65rem] text-champagne-deep">{descNote}</span>}
+          {descError && <span className="text-[0.65rem] text-vermilion">{descError}</span>}
+        </div>
         <BilingualField
           label="Description"
           type="textarea"

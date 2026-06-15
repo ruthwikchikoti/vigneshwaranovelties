@@ -19,28 +19,33 @@ export function ImageUploader({ urls, onChange, max = 6 }: Props) {
   const handleFiles = async (files: FileList) => {
     setError(null);
     setUploading(true);
-    const accepted: string[] = [];
     try {
-      for (const file of Array.from(files).slice(0, max - urls.length)) {
-        const compressed = await imageCompression(file, {
-          maxSizeMB: 1.2,
-          maxWidthOrHeight: 1800,
-          useWebWorker: true,
-          fileType: "image/webp",
-        });
-        const formData = new FormData();
-        formData.append("file", compressed, file.name.replace(/\.[^.]+$/, ".webp"));
-        const res = await fetch("/api/admin/upload-image", {
-          method: "POST",
-          body: formData,
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error ?? "Upload failed");
-        }
-        const { url } = await res.json();
-        accepted.push(url);
-      }
+      // Compress + upload every selected photo concurrently — much faster than
+      // one-at-a-time. Promise.all preserves order, so the first photo stays the
+      // cover.
+      const slice = Array.from(files).slice(0, max - urls.length);
+      const accepted = await Promise.all(
+        slice.map(async (file) => {
+          const compressed = await imageCompression(file, {
+            maxSizeMB: 1.2,
+            maxWidthOrHeight: 1800,
+            useWebWorker: true,
+            fileType: "image/webp",
+          });
+          const formData = new FormData();
+          formData.append("file", compressed, file.name.replace(/\.[^.]+$/, ".webp"));
+          const res = await fetch("/api/admin/upload-image", {
+            method: "POST",
+            body: formData,
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error ?? "Upload failed");
+          }
+          const { url } = await res.json();
+          return url as string;
+        })
+      );
       onChange([...urls, ...accepted]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");

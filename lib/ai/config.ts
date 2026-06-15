@@ -16,6 +16,10 @@ export type AiConfig = {
   region: string;
   /** Bedrock image model id (use the "us." prefix for inference profiles). */
   bedrockModelId: string;
+  /** Bedrock multimodal TEXT model for image→description (Amazon Nova Lite by
+      default — multimodal, cheapest tier, covered by AWS credits). "us." prefix
+      = cross-region inference profile. */
+  textModelId: string;
   /** "image-to-image" (keeps pixels, DEFAULT) | "control-structure" (edges only). */
   bedrockMode: string;
   /** image-to-image 0..1 — LOWER = stay closer to the exact uploaded piece. */
@@ -50,6 +54,8 @@ export function aiConfig(): AiConfig {
     region: process.env.AWS_REGION || "us-west-2",
     bedrockModelId:
       process.env.BEDROCK_IMAGE_MODEL_ID || "stability.sd3-5-large-v1:0",
+    textModelId:
+      process.env.BEDROCK_TEXT_MODEL_ID || "us.amazon.nova-lite-v1:0",
     bedrockMode: process.env.BEDROCK_MODE || "image-to-image",
     bedrockStrength: floatEnv("BEDROCK_STRENGTH", 0.35, 0, 1),
     controlStrength: floatEnv("BEDROCK_CONTROL_STRENGTH", 0.8, 0, 1),

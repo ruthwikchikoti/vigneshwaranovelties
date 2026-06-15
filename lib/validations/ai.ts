@@ -16,6 +16,14 @@ export const reviewSchema = z.object({
   action: z.enum(["approve", "reject", "delete"]),
 });
 
+export const describeSchema = z.object({
+  images: z.array(z.string().url()).min(1).max(6),
+  title: z.string().max(200).optional(),
+  category: z.string().max(200).optional(),
+  tags: z.array(z.string().max(60)).max(20).optional(),
+});
+
 export type EnqueuePayload = z.infer<typeof enqueueSchema>;
 export type GeneratePayload = z.infer<typeof generateSchema>;
 export type ReviewPayload = z.infer<typeof reviewSchema>;
+export type DescribePayload = z.infer<typeof describeSchema>;
