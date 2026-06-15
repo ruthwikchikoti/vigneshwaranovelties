@@ -65,8 +65,11 @@ export function ProductForm({ product, categories }: Props) {
   const childrenOf = (pid: string) => categories.filter((c) => c.parent_id === pid);
   const currentCat = categories.find((c) => c.id === product?.category_id) ?? null;
   const initialParentId = currentCat ? currentCat.parent_id ?? currentCat.id : parentCats[0]?.id ?? "";
-  const initialChildId = currentCat?.parent_id ? currentCat.id : "";
-  const initialCategoryId = product?.category_id ?? parentCats[0]?.id ?? "";
+  const initialSubs = childrenOf(initialParentId);
+  // When the main has sub-categories, one is required — default to the product's
+  // sub (editing) or the first sub (new). Mains with no subs file under the main.
+  const initialChildId = currentCat?.parent_id ? currentCat.id : initialSubs[0]?.id ?? "";
+  const initialCategoryId = initialChildId || initialParentId;
   const [parentCatId, setParentCatId] = useState(initialParentId);
   const [childCatId, setChildCatId] = useState(initialChildId);
   const subCats = childrenOf(parentCatId);
@@ -273,8 +276,9 @@ export function ProductForm({ product, categories }: Props) {
               onChange={(e) => {
                 const v = e.target.value;
                 setParentCatId(v);
-                setChildCatId("");
-                setValue("category_id", v, { shouldValidate: true, shouldDirty: true });
+                const first = childrenOf(v)[0]?.id ?? "";
+                setChildCatId(first);
+                setValue("category_id", first || v, { shouldValidate: true, shouldDirty: true });
               }}
               className={inputClass}
               aria-label="Main category"
@@ -285,19 +289,18 @@ export function ProductForm({ product, categories }: Props) {
                 </option>
               ))}
             </select>
-            {/* Step 2: sub-category (only when the main category has any) */}
+            {/* Step 2: sub-category — required when the main has any. */}
             {subCats.length > 0 && (
               <select
                 value={childCatId}
                 onChange={(e) => {
                   const v = e.target.value;
                   setChildCatId(v);
-                  setValue("category_id", v || parentCatId, { shouldValidate: true, shouldDirty: true });
+                  setValue("category_id", v, { shouldValidate: true, shouldDirty: true });
                 }}
                 className={`${inputClass} mt-2`}
                 aria-label="Sub-category"
               >
-                <option value="">— All {parentCats.find((p) => p.id === parentCatId)?.name_en} —</option>
                 {subCats.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name_en}
