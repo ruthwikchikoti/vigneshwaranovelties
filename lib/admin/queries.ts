@@ -77,6 +77,23 @@ export async function adminGetProducts(): Promise<Product[]> {
   return (data ?? []) as Product[];
 }
 
+/** Fetch a single product (with images + category) — used by the edit page so
+ *  it doesn't pull the entire catalog just to render one form. */
+export async function adminGetProduct(id: string): Promise<Product | null> {
+  if (!isConfigured()) return null;
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*, images:product_images(*), category:categories(*)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) {
+    console.error("[admin] product fetch:", error);
+    return null;
+  }
+  return (data as Product) ?? null;
+}
+
 export async function adminGetCategories(): Promise<Category[]> {
   if (!isConfigured()) return [];
   const supabase = createServiceClient();

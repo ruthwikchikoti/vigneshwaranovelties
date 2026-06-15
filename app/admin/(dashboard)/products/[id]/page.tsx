@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { DuplicateProductButton } from "@/components/admin/DuplicateProductButton";
 import { AdminBackLink } from "@/components/admin/AdminBackLink";
-import { adminGetCategories, adminGetProducts } from "@/lib/admin/queries";
+import { adminGetCategories, adminGetProduct } from "@/lib/admin/queries";
 
 export const metadata = { title: "Edit product · Admin" };
 
@@ -12,10 +12,11 @@ export default async function EditProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const products = await adminGetProducts();
-  const product = products.find((p) => p.id === id);
+  const [product, categories] = await Promise.all([
+    adminGetProduct(id),
+    adminGetCategories(),
+  ]);
   if (!product) notFound();
-  const categories = await adminGetCategories();
 
   return (
     <div className="flex flex-col gap-6 max-w-3xl">

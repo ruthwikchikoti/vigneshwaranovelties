@@ -19,29 +19,35 @@ export function ProductsGrid({ products }: { products: Product[] }) {
   const router = useRouter();
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [pending, setPending] = useState<Product | null>(null);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const visible = products.filter((p) => !deletedIds.has(p.id));
 
-  async function confirmDelete() {
-    if (!pending) return;
-    setBusy(true);
+  function confirmDelete() {
+    const target = pending;
+    if (!target) return;
+    // Optimistic: remove the card + close the dialog immediately, then delete in
+    // the background. Roll back if the server rejects it.
+    setDeletedIds((prev) => new Set(prev).add(target.id));
+    setPending(null);
     setError(null);
-    try {
-      const res = await fetch(`/api/admin/products/${pending.id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message ?? data.error ?? "Could not delete");
+    void (async () => {
+      try {
+        const res = await fetch(`/api/admin/products/${target.id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message ?? data.error ?? "Could not delete");
+        }
+        router.refresh(); // sync header counts in the background
+      } catch (e) {
+        setDeletedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(target.id);
+          return next;
+        });
+        setError(`Couldn't delete "${target.title_en}": ${e instanceof Error ? e.message : "error"}`);
       }
-      setDeletedIds((prev) => new Set(prev).add(pending.id));
-      setPending(null);
-      router.refresh(); // keep counts/filters in sync, non-blocking
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not delete");
-    } finally {
-      setBusy(false);
-    }
+    })();
   }
 
   return (
@@ -105,8 +111,7 @@ export function ProductsGrid({ products }: { products: Product[] }) {
         description={pending ? `"${pending.title_en}" will be permanently removed from the site. This can't be undone.` : ""}
         confirmLabel="Delete product"
         variant="danger"
-        busy={busy}
-        onCancel={() => !busy && setPending(null)}
+        onCancel={() => setPending(null)}
         onConfirm={confirmDelete}
       />
     </>

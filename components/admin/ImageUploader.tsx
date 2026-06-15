@@ -56,12 +56,13 @@ export function ImageUploader({ urls, onChange, max = 6 }: Props) {
 
   return (
     <div>
+      {/* No `capture` attribute → mobile shows the Gallery / Camera / Files
+          chooser instead of forcing the camera. */}
       <input
         ref={inputRef}
         type="file"
         accept="image/*"
         multiple
-        capture="environment"
         className="hidden"
         onChange={(e) => e.target.files && handleFiles(e.target.files)}
       />
