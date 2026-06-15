@@ -62,18 +62,40 @@ const notoSansTe = localFont({
   weight: "100 900",
 });
 
+const SEO_TITLE = `${site.name} — Jewellery & Gift Shop in Cherial, Telangana`;
+const SEO_DESC =
+  "Vigneshwara Novelties, Cherial — a 20+ year family jewellery & gift showroom. " +
+  "1 gram gold, CZ (American diamond), panchaloha & imitation jewellery, beads, men's " +
+  "kadiyam, saree pins and gift items. Visit us in Cherial or message on WhatsApp.";
+
 export const metadata: Metadata = {
   title: {
-    default: site.name,
+    default: SEO_TITLE,
     template: `%s — ${site.name}`,
   },
-  description: site.description,
+  description: SEO_DESC,
   metadataBase: new URL(site.url),
+  alternates: { canonical: "/" },
+  keywords: [
+    "jewellery shop Cherial",
+    "gift shop Cherial",
+    "best jewellery shop in Cherial",
+    "1 gram gold jewellery Cherial",
+    "imitation jewellery Cherial",
+    "CZ jewellery Cherial",
+    "panchaloha jewellery",
+    "gift articles Cherial Telangana",
+    "Vigneshwara Novelties",
+    "jewellery near me Cherial",
+  ],
   openGraph: {
-    title: site.name,
-    description: site.description,
+    title: SEO_TITLE,
+    description: SEO_DESC,
     type: "website",
     siteName: site.name,
+    locale: "en_IN",
+    url: site.url,
+    images: [{ url: "/brand/seal.png", width: 512, height: 512, alt: site.name }],
   },
   twitter: { card: "summary_large_image" },
   manifest: "/manifest.webmanifest",
@@ -135,18 +157,43 @@ export default async function LocaleLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "JewelryStore",
+              "@id": `${site.url}/#store`,
               name: site.name,
               description: site.description,
               url: site.url,
+              image: `${site.url}/brand/seal.png`,
               telephone: site.ownerPhone,
               email: site.ownerEmail,
               slogan: site.experience,
+              priceRange: "₹₹",
+              currenciesAccepted: "INR",
               address: {
                 "@type": "PostalAddress",
-                streetAddress: site.address.line2,
-                addressLocality: site.address.city,
+                streetAddress: `${site.address.line2}, ${site.address.line3}`,
+                addressLocality: "Cherial",
+                addressRegion: "Telangana",
+                postalCode: site.address.pin,
                 addressCountry: "IN",
               },
+              // NOTE: town-level coordinates for Cherial — refine to the exact
+              // shop pin from your Google Business Profile for best local ranking.
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: 17.926,
+                longitude: 78.972,
+              },
+              hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                `${site.name}, ${site.address.line2}, ${site.address.city}`
+              )}`,
+              areaServed: ["Cherial", "Siddipet", "Telangana"],
+              openingHoursSpecification: [
+                {
+                  "@type": "OpeningHoursSpecification",
+                  dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                  opens: "10:00",
+                  closes: "20:00",
+                },
+              ],
               sameAs: Object.values(site.socials).filter(Boolean),
             }),
           }}

@@ -23,7 +23,7 @@ export type HeroSlide = {
 
 type HeroProps = {
   slides: HeroSlide[];
-  /** Seconds per slide. Default 6s — slow + restrained. */
+  /** Seconds per slide. */
   intervalSec?: number;
   /** Primary “browse” CTA when you have a default collection (e.g. first category slug). */
   primaryBrowseHref?: string;
@@ -33,7 +33,7 @@ const FADE_MS = 700; // matches the slow ease-out-quart timing in the design sys
 
 export function Hero({
   slides,
-  intervalSec = 6,
+  intervalSec = 4,
   primaryBrowseHref = "/search",
 }: HeroProps) {
   const t = useTranslations("hero");
@@ -185,6 +185,20 @@ function SlideImage({
     </span>
   ) : null;
 
+  // Title + CTA overlay so every banner carries text, not just the badged one.
+  const caption = slide.title ? (
+    <div className="absolute bottom-0 inset-x-0 z-[2] p-5 lg:p-8 bg-gradient-to-t from-ink/75 via-ink/25 to-transparent pointer-events-none">
+      <p className="font-display text-ivory text-[1.7rem] lg:text-[2.4rem] leading-[1.05] drop-shadow">
+        {slide.title}
+      </p>
+      {slide.linkUrl && (
+        <span className="mt-2 inline-flex items-center gap-1.5 smallcaps text-[0.62rem] tracking-[0.16em] text-ivory/90">
+          Shop now <span aria-hidden="true">→</span>
+        </span>
+      )}
+    </div>
+  ) : null;
+
   if (slide.linkUrl) {
     return (
       <Link
@@ -196,6 +210,7 @@ function SlideImage({
       >
         {inner}
         {badge}
+        {caption}
       </Link>
     );
   }
@@ -204,6 +219,7 @@ function SlideImage({
     <div className={wrapperClass} style={wrapperStyle} aria-hidden={!active}>
       {inner}
       {badge}
+      {caption}
     </div>
   );
 }
