@@ -59,6 +59,18 @@ export function ProductForm({ product, categories }: Props) {
       : 0;
   const [discountPct, setDiscountPct] = useState<number>(initialDiscountPct);
 
+  // Two-step category picker (main → sub). The catalog has ~40 categories, so a
+  // single flat dropdown is unusable — pick the main category, then the sub.
+  const parentCats = categories.filter((c) => !c.parent_id);
+  const childrenOf = (pid: string) => categories.filter((c) => c.parent_id === pid);
+  const currentCat = categories.find((c) => c.id === product?.category_id) ?? null;
+  const initialParentId = currentCat ? currentCat.parent_id ?? currentCat.id : parentCats[0]?.id ?? "";
+  const initialChildId = currentCat?.parent_id ? currentCat.id : "";
+  const initialCategoryId = product?.category_id ?? parentCats[0]?.id ?? "";
+  const [parentCatId, setParentCatId] = useState(initialParentId);
+  const [childCatId, setChildCatId] = useState(initialChildId);
+  const subCats = childrenOf(parentCatId);
+
   const {
     register,
     handleSubmit,
@@ -76,7 +88,7 @@ export function ProductForm({ product, categories }: Props) {
       description_te: product?.description_te ?? "",
       price_inr: product?.price_inr ?? 0,
       discount_price_inr: product?.discount_price_inr ?? undefined,
-      category_id: product?.category_id ?? categories[0]?.id ?? "",
+      category_id: initialCategoryId,
       stock_status: product?.stock_status ?? "in_stock",
       is_featured: product?.is_featured ?? false,
       is_trending: product?.is_trending ?? false,
@@ -255,13 +267,45 @@ export function ProductForm({ product, categories }: Props) {
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Category</label>
-            <select {...register("category_id")} className={inputClass}>
-              {categories.map((c) => (
+            {/* Step 1: main category */}
+            <select
+              value={parentCatId}
+              onChange={(e) => {
+                const v = e.target.value;
+                setParentCatId(v);
+                setChildCatId("");
+                setValue("category_id", v, { shouldValidate: true, shouldDirty: true });
+              }}
+              className={inputClass}
+              aria-label="Main category"
+            >
+              {parentCats.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name_en}
                 </option>
               ))}
             </select>
+            {/* Step 2: sub-category (only when the main category has any) */}
+            {subCats.length > 0 && (
+              <select
+                value={childCatId}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setChildCatId(v);
+                  setValue("category_id", v || parentCatId, { shouldValidate: true, shouldDirty: true });
+                }}
+                className={`${inputClass} mt-2`}
+                aria-label="Sub-category"
+              >
+                <option value="">— All {parentCats.find((p) => p.id === parentCatId)?.name_en} —</option>
+                {subCats.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name_en}
+                  </option>
+                ))}
+              </select>
+            )}
+            <input type="hidden" {...register("category_id")} />
           </div>
           <div>
             <label className={labelClass}>Availability</label>
