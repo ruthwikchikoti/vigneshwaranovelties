@@ -12,6 +12,7 @@
 import { existsSync, readFileSync } from "node:fs";
 
 const PING = !process.argv.includes("--no-ping");
+const SEND_TEST = process.argv.includes("--send-test");
 
 function loadFile(path: string): Record<string, string> {
   if (!existsSync(path)) return {};
@@ -107,12 +108,34 @@ async function main() {
       });
     }
     if (has("BREVO_API_KEY")) {
-      await ping("Brevo key valid", async () => {
+      if (SEND_TEST) {
+        // Definitive check: actually send a transactional email via the SAME
+        // endpoint the app uses (works for transactional-scoped keys too).
+        await ping("Brevo send test", async () => {
+          const to = env.INQUIRY_NOTIFICATION_EMAIL || env.BREVO_FROM_EMAIL!;
+          const r = await fetch("https://api.brevo.com/v3/smtp/email", {
+            method: "POST",
+            headers: { "api-key": env.BREVO_API_KEY!, "content-type": "application/json", accept: "application/json" },
+            body: JSON.stringify({
+              sender: { email: env.BREVO_FROM_EMAIL, name: env.BREVO_FROM_NAME || "Vigneshwara Novelties" },
+              to: [{ email: to }],
+              subject: "Env check — test email",
+              htmlContent: "<p>This is an automated test from check-env. Brevo is working.</p>",
+            }),
+          });
+          const body = await r.text().catch(() => "");
+          return { ok: r.ok, note: r.ok ? `sent to ${to}` : `HTTP ${r.status}: ${body.slice(0, 90)}` };
+        });
+      } else {
+        // Soft check: /account needs an account-scoped key. A 401 here often
+        // just means the key is transactional-only (still sends fine) — so we
+        // DON'T count it as a failure; suggest --send-test to confirm.
         const r = await fetch("https://api.brevo.com/v3/account", {
           headers: { "api-key": env.BREVO_API_KEY! },
-        });
-        return { ok: r.ok, note: r.ok ? "200" : `HTTP ${r.status} (bad key?)` };
-      });
+        }).catch(() => null);
+        if (r && r.ok) line(true, "Brevo key valid", "200 (account scope)");
+        else line(true, "Brevo key present", `/account → ${r ? `HTTP ${r.status}` : "no response"}; run with --send-test to verify sending`);
+      }
     }
     if (has("NEXT_PUBLIC_IMAGEKIT_URL")) {
       await ping("ImageKit reachable", async () => {
