@@ -8,7 +8,8 @@ import { applyCategoryOffers } from "@/lib/offers";
 import { routing } from "@/i18n/routing";
 import { site } from "@/lib/site";
 
-export const runtime = "edge";
+// No `runtime`/`force-dynamic` needed — reading `searchParams` (the ?page= cursor)
+// already makes this route render on demand. The shared loading.tsx covers it.
 
 function shopPath(locale: string, page: number): string {
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;

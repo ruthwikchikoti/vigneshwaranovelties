@@ -19,6 +19,17 @@ type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
+// Prebuild a static page per product so opening a product is served instantly
+// from the CDN. New products still work: `dynamicParams` defaults to true, so
+// unknown slugs render on demand then cache, and admin edits purge them via
+// revalidateTag. If the DB is unreachable at build, getProducts() returns []
+// (safe wrapper) and everything falls back to on-demand rendering — the build
+// never breaks.
+export async function generateStaticParams() {
+  const products = await getProducts();
+  return products.map((p) => ({ slug: p.slug }));
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   const product = await getProductBySlug(slug);

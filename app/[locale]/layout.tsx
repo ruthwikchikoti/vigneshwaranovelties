@@ -117,13 +117,25 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-// Dynamic public pages run on the edge runtime (fast cold starts, global).
-// Supabase JS and next-intl work fine on edge.
+// Public pages are statically generated and served from the CDN, then kept
+// fresh two ways:
+//   1. On-demand — admin mutations call `revalidateCache()` (revalidateTag),
+//      which purges the affected routes so edits show up immediately.
+//   2. Time-based — `revalidate` below self-heals every 10 min as a safety net.
 //
-// Note: `generateStaticParams` is intentionally NOT exported here because
-// Next.js disallows combining it with edge runtime. Locale routing is still
-// handled correctly by the next-intl middleware.
-export const runtime = "edge";
+// This replaces the previous `runtime = "edge"` (which rendered every page
+// per-request and made navigation feel laggy). Static HTML from the CDN makes
+// page-to-page navigation near-instant. Pages that read `searchParams`
+// (shop, search, inquiry/success) opt themselves back into dynamic rendering
+// automatically — that's expected.
+//
+// Static rendering with next-intl requires generateStaticParams + the
+// `setRequestLocale` calls already present in every page/layout.
+export const revalidate = 600;
+
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 
 export default async function LocaleLayout({
   children,

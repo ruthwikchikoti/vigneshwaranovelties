@@ -42,6 +42,13 @@ export function Hero({
   const safeSlides = slides.length > 0 ? slides : [];
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  // Track which slides have been shown so we only ever fetch a banner image
+  // once it's actually needed (slide 0 up front, the rest as the carousel
+  // reaches them). Keeps the homepage from downloading every banner at once.
+  const [seen, setSeen] = useState<Set<number>>(() => new Set([0]));
+  useEffect(() => {
+    setSeen((prev) => (prev.has(index) ? prev : new Set(prev).add(index)));
+  }, [index]);
   const reducedMotion = usePrefersReducedMotion();
   const shouldRotate = safeSlides.length > 1 && !reducedMotion && !paused;
 
@@ -117,6 +124,7 @@ export function Hero({
             slide={slide}
             active={i === index}
             priority={i === 0}
+            load={i === index || seen.has(i)}
           />
         ))}
 
@@ -146,13 +154,18 @@ function SlideImage({
   slide,
   active,
   priority,
+  load,
 }: {
   slide: HeroSlide;
   active: boolean;
   priority: boolean;
+  /** Only fetch the banner image once it's the active slide (or has been shown).
+      Offscreen carousel slides would otherwise all download on first paint —
+      heavy on the homepage LCP — because they sit in-viewport behind opacity-0. */
+  load: boolean;
 }) {
   const mobileSrc = slide.imageMobile ?? slide.imageDesktop;
-  const inner = (
+  const inner = !load ? null : (
     <>
       <Image
         src={ikImage(mobileSrc, { width: 900, format: "auto", quality: 88 })}

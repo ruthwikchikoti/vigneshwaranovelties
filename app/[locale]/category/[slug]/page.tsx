@@ -14,6 +14,14 @@ type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
+// Prebuild a static page per category (CDN-instant). New categories render on
+// demand (dynamicParams defaults true) and admin edits purge via revalidateTag.
+// Safe at build even if the DB is unreachable — getCategories() returns [].
+export async function generateStaticParams() {
+  const categories = await getCategories();
+  return categories.map((c) => ({ slug: c.slug }));
+}
+
 export default async function CategoryPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
