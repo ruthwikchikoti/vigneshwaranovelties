@@ -21,6 +21,9 @@ export const site = {
     city: "Cherial, Telangana 506223",
     pin: "506223",
   },
+  // Exact shop location (from Google Business Profile) — local SEO + maps link.
+  geo: { lat: 17.9214786, lng: 78.9726215 },
+  mapUrl: "https://maps.app.goo.gl/HQG2ozRg6E8o2JbP9",
   hours: {
     label: "Open all 7 days",
     range: "10:00 AM — 8:00 PM",

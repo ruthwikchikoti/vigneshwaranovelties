@@ -63,6 +63,14 @@ export default async function ContactPage({
             <br />
             {site.address.city}
           </p>
+          <a
+            href={site.mapUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-4 text-champagne-deep border-b border-champagne-deep/40 hover:border-champagne-deep pb-0.5 text-sm transition-colors"
+          >
+            {t("directions")}
+          </a>
         </div>
         <div>
           <p className="smallcaps text-[0.6rem] text-champagne-deep mb-3">

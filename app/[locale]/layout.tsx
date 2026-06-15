@@ -175,16 +175,13 @@ export default async function LocaleLayout({
                 postalCode: site.address.pin,
                 addressCountry: "IN",
               },
-              // NOTE: town-level coordinates for Cherial — refine to the exact
-              // shop pin from your Google Business Profile for best local ranking.
+              // Exact shop pin from the Google Business Profile.
               geo: {
                 "@type": "GeoCoordinates",
-                latitude: 17.926,
-                longitude: 78.972,
+                latitude: site.geo.lat,
+                longitude: site.geo.lng,
               },
-              hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                `${site.name}, ${site.address.line2}, ${site.address.city}`
-              )}`,
+              hasMap: site.mapUrl,
               areaServed: ["Cherial", "Siddipet", "Telangana"],
               openingHoursSpecification: [
                 {
