@@ -13,6 +13,23 @@ configs:
     # Poll git every 60s (default 180s). GitHub cannot send webhooks to a
     # laptop, so polling is how changes are detected.
     timeout.reconciliation: 60s
+    # The built-in HPA check reports Degraded while new pods have no CPU
+    # metrics yet (first ~60s of every rollout), which makes the sync fail
+    # and retry. Only treat a real misconfiguration as Degraded.
+    resource.customizations.health.autoscaling_HorizontalPodAutoscaler: |
+      hs = { status = "Healthy", message = "" }
+      if obj.status ~= nil and obj.status.conditions ~= nil then
+        for _, c in ipairs(obj.status.conditions) do
+          if c.type == "AbleToScale" and c.status == "False" then
+            hs.status = "Degraded"
+            hs.message = c.message
+          elseif c.type == "ScalingActive" and c.status == "False" and hs.status ~= "Degraded" then
+            hs.status = "Progressing"
+            hs.message = c.message
+          end
+        end
+      end
+      return hs
 server:
   ingress:
     enabled: true
