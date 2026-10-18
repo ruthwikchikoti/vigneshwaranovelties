@@ -72,6 +72,9 @@ alert fires and the same revert applies.
 - *Drift:* Argo CD compares the cluster with git every 60 s. A manual
   `kubectl edit` shows as OutOfSync and `selfHeal` reverts it. A push-based
   pipeline only knows what it applied last time.
+  Caveat found in testing: only fields that git defines are compared, so a
+  field added by hand (e.g. an extra env var) is not reverted. RBAC that keeps
+  people from writing to the namespace closes that gap.
 - *Traceability:* every deployment is a commit (`Deploy abc1234 to local
   cluster`). `git log deploy/helm/vigneshwara-web/values-local.yaml` is the
   release history.

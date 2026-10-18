@@ -7,8 +7,8 @@
 | Project | Vigneshwara Novelties - storefront and inquiry site for a jewellery shop |
 | Repository | https://github.com/ruthwikchikoti/vigneshwaranovelties |
 | Baseline commit | [`267cc62`](https://github.com/ruthwikchikoti/vigneshwaranovelties/commit/267cc62e226b49403aef96cc0022fb1eb2cedb04) (tag `baseline`) |
-| Pull request | _filled in below_ |
-| Final commit | _filled in below_ |
+| Pull request | [#6](https://github.com/ruthwikchikoti/vigneshwaranovelties/pull/6) `devops/final-project` → `main` |
+| Final commit | head of the PR at submission time (given with the submission) |
 
 ## The application
 
@@ -54,3 +54,9 @@ See the PR description and [docs/](.) for detail.
 ## Run instructions
 
 [docs/RUNNING.md](RUNNING.md)
+
+## Evidence
+
+[docs/EVIDENCE.md](EVIDENCE.md): pipeline run and image for a commit, the
+deployed version, an inquiry followed through metrics, logs and a trace, the
+dashboard and SLO values, and drift, bad-release and pod-failure drills.

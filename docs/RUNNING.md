@@ -122,6 +122,11 @@ minikube delete
   cache TTL (60 s data, 10 min pages).
 - **Secrets** are created from `.env.local` by a script rather than managed
   declaratively (Sealed Secrets / External Secrets would be the next step).
+- **Jaeger pinned to 2.20.** 2.21 removed the query API that Grafana's Jaeger
+  data source uses.
+- **minikube specifics.** The bootstrap script turns on ingress-nginx request
+  metrics (off in the addon) and Promtail parses Docker-format logs; on a
+  containerd cluster use the `cri: {}` stage instead.
 - **Traces in memory.** Jaeger keeps traces only until it restarts; Loki keeps
   72 h of logs; Prometheus 3 days.
 - **Alertmanager has no receiver** configured (no Slack/email); alerts are
