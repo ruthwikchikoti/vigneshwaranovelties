@@ -1,0 +1,18 @@
+# Scrape the ingress controller: it sees every user request, so it is the
+# source for request rate, 5xx ratio and latency (the SLO metrics).
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: ingress-nginx
+  namespace: monitoring
+  labels: { release: kube-prometheus-stack }
+spec:
+  namespaceSelector:
+    matchNames: [ingress-nginx]
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+  podMetricsEndpoints:
+    # minikube's ingress addon serves metrics on 10254 without a named port.
+    - portNumber: 10254
+      path: /metrics
