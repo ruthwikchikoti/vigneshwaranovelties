@@ -1,7 +1,7 @@
 # Local minikube environment. Argo CD renders the chart with this file.
 # image.tag is updated by the CI pipeline after a successful build.
 image:
-  tag: "e0a1c4f"
+  tag: "673a9a6"
 
 ingress:
   host: vigneshwara.local
