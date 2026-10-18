@@ -3,6 +3,11 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
+// Container builds (Dockerfile sets BUILD_STANDALONE=1) produce a self-contained
+// server in .next/standalone with only the node_modules it needs. Vercel builds
+// are unaffected.
+const isStandalone = process.env.BUILD_STANDALONE === "1";
+
 const nextConfig: NextConfig = {
   images: {
     // Images are resized + served by ImageKit through a custom loader
@@ -22,8 +27,12 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "fastly.picsum.photos" },
     ],
   },
+  ...(isStandalone ? { output: "standalone" as const } : {}),
   experimental: {
     optimizePackageImports: ["motion", "lucide-react"],
+    // In the container the root filesystem is read-only, so regenerated ISR
+    // pages are kept in memory instead of being written back into .next/.
+    ...(isStandalone ? { isrFlushToDisk: false } : {}),
   },
   // Don't fail the production build (Vercel) on lint findings — lint is run
   // separately via `npm run lint`.

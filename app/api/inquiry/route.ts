@@ -3,8 +3,9 @@ import { inquirySchema } from "@/lib/validations/inquiry";
 import { createServiceClient } from "@/lib/supabase/server";
 import { sendInquiryEmail } from "@/lib/email";
 import { notifyAdminsPush } from "@/lib/push-notify";
+import { log } from "@/lib/observability/log";
+import { metrics } from "@/lib/observability/metrics";
 
-export const runtime = "edge";
 
 const isSupabaseConfigured = () =>
   Boolean(
@@ -19,11 +20,13 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
+    metrics.inquiries.inc({ result: "invalid" });
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
 
   const parsed = inquirySchema.safeParse(body);
   if (!parsed.success) {
+    metrics.inquiries.inc({ result: "invalid" });
     return NextResponse.json(
       { error: "validation", details: parsed.error.flatten() },
       { status: 422 }
@@ -32,6 +35,7 @@ export async function POST(req: Request) {
 
   // Honeypot — if filled, silently accept (bot)
   if (parsed.data.hp) {
+    metrics.inquiries.inc({ result: "spam" });
     return NextResponse.json({ ok: true });
   }
 
@@ -56,12 +60,14 @@ export async function POST(req: Request) {
         // saved + emailed, so ACK with 200 so the client clears its queue and
         // we do NOT email/push again.
         if (error.code === "23505") {
+          metrics.inquiries.inc({ result: "duplicate" });
           return NextResponse.json({ ok: true, duplicate: true });
         }
         throw error;
       }
     } catch (err) {
-      console.error("[inquiry] Supabase insert failed:", err);
+      metrics.inquiries.inc({ result: "error" });
+      log.error("inquiry insert failed", { err });
       return NextResponse.json({ error: "db" }, { status: 500 });
     }
   } else {
@@ -76,9 +82,12 @@ export async function POST(req: Request) {
   // 3. Push notification to admin devices — truly fire-and-forget so a
   //    slow / unreachable push service never delays the customer response.
   notifyAdminsPush({ customer_name: inquiry.customer_name, item_count: itemCount })
-    .catch((err) => console.error("[push] unexpected:", err));
+    .catch((err) => log.error("admin push notification failed", { err }));
 
   const emailResult = await sendInquiryEmail(inquiry);
+
+  metrics.inquiries.inc({ result: "saved" });
+  log.info("inquiry saved", { source: inquiry.source, items: itemCount, email: emailResult });
 
   return NextResponse.json({ ok: true, email: emailResult });
 }
