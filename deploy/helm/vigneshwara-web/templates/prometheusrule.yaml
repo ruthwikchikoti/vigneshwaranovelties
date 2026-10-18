@@ -1,0 +1,85 @@
+{{- if .Values.metrics.prometheusRule.enabled }}
+{{- $ns := .Release.Namespace }}
+{{- $ing := include "app.fullname" . }}
+# SLOs (see docs/OPERATIONS.md):
+#   availability: 99.5% of requests through the ingress are not 5xx (30 days)
+#   latency:      95% of requests complete in under 1 second
+#   inquiries:    every inquiry a customer submits is saved
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "app.fullname" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    {{- with .Values.metrics.prometheusRule.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: vigneshwara-web.recording
+      rules:
+        - record: vigneshwara:requests:rate5m
+          expr: sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[5m]))
+        - record: vigneshwara:errors5xx:ratio_rate5m
+          expr: |
+            sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}",status=~"5.."}[5m]))
+            / clamp_min(sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[5m])), 1e-9)
+        - record: vigneshwara:errors5xx:ratio_rate1h
+          expr: |
+            sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}",status=~"5.."}[1h]))
+            / clamp_min(sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[1h])), 1e-9)
+        - record: vigneshwara:latency:p95_5m
+          expr: |
+            histogram_quantile(0.95, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[5m])))
+    - name: vigneshwara-web.alerts
+      rules:
+        # Error budget is 0.5%. Burning it 14.4x faster than allowed would use
+        # 2% of the monthly budget in one hour, so page someone.
+        - alert: HighErrorBudgetBurn
+          expr: vigneshwara:errors5xx:ratio_rate5m > (14.4 * 0.005) and vigneshwara:errors5xx:ratio_rate1h > (14.4 * 0.005)
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "More than 7.2% of requests are failing with 5xx"
+            runbook: "docs/OPERATIONS.md#high-error-rate"
+        - alert: HighLatencyP95
+          expr: vigneshwara:latency:p95_5m > 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "p95 latency above 1s for 10 minutes"
+            runbook: "docs/OPERATIONS.md#high-latency"
+        - alert: InquiriesFailing
+          expr: increase(app_inquiries_total{namespace="{{ $ns }}",result="error"}[10m]) > 0
+          labels:
+            severity: critical
+          annotations:
+            summary: "Customer inquiries are failing to save"
+            runbook: "docs/OPERATIONS.md#inquiries-failing"
+        - alert: NoReadyPods
+          expr: kube_deployment_status_replicas_available{namespace="{{ $ns }}",deployment="{{ $ing }}"} < 1
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "No ready pods for {{ $ing }}"
+            runbook: "docs/OPERATIONS.md#no-ready-pods"
+        - alert: PodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="{{ $ns }}",container="web"}[15m]) > 2
+          labels:
+            severity: warning
+          annotations:
+            summary: "A web pod restarted more than twice in 15 minutes"
+            runbook: "docs/OPERATIONS.md#pods-restarting"
+        - alert: SupabaseSlow
+          expr: |
+            histogram_quantile(0.95, sum by (le) (rate(app_dependency_request_duration_seconds_bucket{namespace="{{ $ns }}",dependency="supabase"}[10m]))) > 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Supabase p95 latency above 1s"
+            runbook: "docs/OPERATIONS.md#supabase-slow"
+{{- end }}

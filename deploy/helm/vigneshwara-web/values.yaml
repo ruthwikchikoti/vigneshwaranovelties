@@ -1,0 +1,121 @@
+# Default values. Environment-specific overrides live in values-<env>.yaml so
+# there is one chart and no copied manifests that drift apart.
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/ruthwikchikoti/vigneshwara-web
+  # Always an immutable git SHA, set per environment by CI. Never "latest".
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  # The app never talks to the Kubernetes API, so no token is mounted.
+  automountToken: false
+
+podAnnotations: {}
+
+# Rolling update that never drops below the desired replica count: a new pod
+# must pass readiness before an old one is removed.
+strategy:
+  maxSurge: 1
+  maxUnavailable: 0
+minReadySeconds: 5
+progressDeadlineSeconds: 180
+revisionHistoryLimit: 5
+terminationGracePeriodSeconds: 30
+# Gives the ingress time to stop routing to a pod before it shuts down.
+preStopSleepSeconds: 5
+
+containerPort: 3000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  host: vigneshwara.local
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+probes:
+  startup:
+    path: /api/health
+    periodSeconds: 2
+    failureThreshold: 30   # up to 60s to start
+  liveness:
+    path: /api/health
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readiness:
+    path: /api/ready
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 2
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Non-secret runtime configuration (rendered into a ConfigMap).
+config:
+  NEXT_PUBLIC_SITE_URL: "https://vigneshwaranovelties.com"
+  NEXT_PUBLIC_SITE_NAME: "Vigneshwara Novelties"
+  NEXT_PUBLIC_SUPABASE_URL: ""
+  NEXT_PUBLIC_IMAGEKIT_URL: ""
+  NEXT_PUBLIC_WHATSAPP_NUMBER: ""
+  # Feature flag: hides the admin AI Studio and blocks generation calls.
+  AI_GENERATION_ENABLED: "false"
+  AI_IMAGES_PER_PRODUCT: "5"
+  AI_MAX_RETRIES: "2"
+  AWS_REGION: "us-west-2"
+  OTEL_SERVICE_NAME: "vigneshwara-web"
+  OTEL_EXPORTER_OTLP_ENDPOINT: ""
+
+# Secrets are NOT stored in this chart. A Secret with this name must exist in
+# the namespace (scripts/devops/create-app-secret.sh creates it from .env.local).
+existingSecret: vigneshwara-web-secrets
+
+networkPolicy:
+  enabled: true
+  ingressControllerNamespace: ingress-nginx
+  monitoringNamespace: monitoring
+  observabilityNamespace: observability
+
+metrics:
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    labels: {}
+  prometheusRule:
+    enabled: false
+    labels: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+smokeTest:
+  enabled: true
+  image: curlimages/curl:8.21.0

@@ -1,0 +1,24 @@
+# Local minikube environment. Argo CD renders the chart with this file.
+# image.tag is updated by the CI pipeline after a successful build.
+image:
+  tag: "8d672a7"
+
+ingress:
+  host: vigneshwara.local
+
+config:
+  NEXT_PUBLIC_SITE_URL: "http://vigneshwara.local"
+  NEXT_PUBLIC_SUPABASE_URL: "https://hkrdqstatrdzjpjucxqk.supabase.co"
+  NEXT_PUBLIC_IMAGEKIT_URL: "https://ik.imagekit.io/VigneshwaraNovelties"
+  NEXT_PUBLIC_WHATSAPP_NUMBER: "919866777053"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector.observability.svc:4318"
+
+metrics:
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack
+  prometheusRule:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack

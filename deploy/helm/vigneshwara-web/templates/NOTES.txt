@@ -1,0 +1,4 @@
+{{ include "app.fullname" . }} {{ .Values.image.tag }} deployed to {{ .Release.Namespace }}.
+
+  Version:  curl http://{{ .Values.ingress.host }}/api/version
+  Rollout:  kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "app.fullname" . }}
