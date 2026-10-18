@@ -1,0 +1,11 @@
+# Trivy settings shared by CI and local runs.
+skip-dirs:
+  - node_modules
+  - .next
+  - .vercel
+  - .wrangler
+misconfiguration:
+  helm:
+    # Render the chart with the real environment values when scanning it.
+    values:
+      - deploy/helm/vigneshwara-web/values-local.yaml
