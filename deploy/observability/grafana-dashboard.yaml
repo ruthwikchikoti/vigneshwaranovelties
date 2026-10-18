@@ -170,6 +170,222 @@ data:
           ]
         },
         {
+          "title": "Requests under 1s (30m)",
+          "type": "stat",
+          "description": "Latency SLO: at least 95% of requests in under 1 second.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 4,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "vigneshwara:latency:fast_ratio_rate30m",
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "noValue": "0",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.95
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            }
+          }
+        },
+        {
+          "title": "Error budget left (3d window)",
+          "type": "stat",
+          "description": "Share of the 0.5% error budget not used yet. The SLO is defined over 30 days; locally Prometheus keeps 3 days, so this uses the last 3 days.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 6,
+            "y": 4,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "1 - ((sum(increase(nginx_ingress_controller_requests{exported_namespace=\"vigneshwara\",ingress=\"vigneshwara-web\",status=~\"5..\"}[3d])) or vector(0)) / clamp_min(sum(increase(nginx_ingress_controller_requests{exported_namespace=\"vigneshwara\",ingress=\"vigneshwara-web\"}[3d])), 1)) / 0.005",
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "noValue": "0",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 0.25
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.5
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            }
+          }
+        },
+        {
+          "title": "Supabase query errors (1h)",
+          "type": "stat",
+          "description": "Failed catalogue queries. Pages still return 200 with no products, so this is the only signal.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 4,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "sum(increase(app_dependency_request_duration_seconds_count{namespace=\"vigneshwara\",dependency=\"supabase\",outcome=\"error\"}[1h])) or vector(0)",
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "noValue": "0",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            }
+          }
+        },
+        {
+          "title": "Owner emails failed (24h)",
+          "type": "stat",
+          "description": "Inquiry notification emails that Brevo did not accept. The inquiry itself is still saved.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 18,
+            "y": 4,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "sum(increase(app_notifications_total{namespace=\"vigneshwara\",channel=\"email\",result=\"failed\"}[24h])) or vector(0)",
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "noValue": "0",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            }
+          }
+        },
+        {
           "title": "Requests per second by status",
           "type": "timeseries",
           "datasource": {
@@ -178,7 +394,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 4,
+            "y": 8,
             "w": 12,
             "h": 7
           },
@@ -209,7 +425,7 @@ data:
           },
           "gridPos": {
             "x": 12,
-            "y": 4,
+            "y": 8,
             "w": 12,
             "h": 7
           },
@@ -249,7 +465,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 11,
+            "y": 15,
             "w": 12,
             "h": 7
           },
@@ -298,7 +514,7 @@ data:
           },
           "gridPos": {
             "x": 12,
-            "y": 11,
+            "y": 15,
             "w": 12,
             "h": 7
           },
@@ -315,7 +531,7 @@ data:
           ]
         },
         {
-          "title": "Supabase latency p95 (dependency)",
+          "title": "Supabase query latency p95 by outcome",
           "type": "timeseries",
           "datasource": {
             "type": "prometheus",
@@ -323,7 +539,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 18,
+            "y": 22,
             "w": 12,
             "h": 7
           },
@@ -354,7 +570,7 @@ data:
           },
           "gridPos": {
             "x": 12,
-            "y": 18,
+            "y": 22,
             "w": 12,
             "h": 7
           },
@@ -379,7 +595,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 25,
+            "y": 29,
             "w": 12,
             "h": 7
           },
@@ -410,7 +626,7 @@ data:
           },
           "gridPos": {
             "x": 12,
-            "y": 25,
+            "y": 29,
             "w": 12,
             "h": 7
           },
@@ -441,7 +657,7 @@ data:
           },
           "gridPos": {
             "x": 0,
-            "y": 32,
+            "y": 36,
             "w": 24,
             "h": 9
           },
@@ -455,7 +671,8 @@ data:
                 "uid": "loki"
               }
             }
-          ]
+          ],
+          "description": "Structured warn/error lines from the app. Empty means no errors in the selected time range."
         }
       ]
     }

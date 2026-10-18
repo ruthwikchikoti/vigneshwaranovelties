@@ -1,6 +1,7 @@
 {{- if .Values.metrics.prometheusRule.enabled }}
 {{- $ns := .Release.Namespace }}
 {{- $ing := include "app.fullname" . }}
+{{- $rb := .Values.metrics.prometheusRule.runbookUrl }}
 # SLOs (see docs/OPERATIONS.md):
 #   availability: 99.5% of requests through the ingress are not 5xx (30 days)
 #   latency:      95% of requests complete in under 1 second
@@ -28,13 +29,19 @@ spec:
           expr: |
             (sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}",status=~"5.."}[1h])) or vector(0))
             / clamp_min(sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[1h])), 1e-9)
+        # Share of requests answered in under 1s. A ratio is steadier than p95
+        # when traffic is low (a few slow requests swing the percentile).
+        - record: vigneshwara:latency:fast_ratio_rate30m
+          expr: |
+            sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace="{{ $ns }}",ingress="{{ $ing }}",le="1.0"}[30m]))
+            / clamp_min(sum(rate(nginx_ingress_controller_request_duration_seconds_count{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[30m])), 1e-9)
         - record: vigneshwara:latency:p95_5m
           expr: |
             histogram_quantile(0.95, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[5m])))
     - name: vigneshwara-web.alerts
       rules:
         # Error budget is 0.5%. Burning it 14.4x faster than allowed would use
-        # 2% of the monthly budget in one hour, so page someone.
+        # 2% of the monthly budget in one hour, so this is critical.
         - alert: HighErrorBudgetBurn
           expr: vigneshwara:errors5xx:ratio_rate5m > (14.4 * 0.005) and vigneshwara:errors5xx:ratio_rate1h > (14.4 * 0.005)
           for: 2m
@@ -42,22 +49,26 @@ spec:
             severity: critical
           annotations:
             summary: "More than 7.2% of requests are failing with 5xx"
-            runbook: "docs/OPERATIONS.md#high-error-rate"
-        - alert: HighLatencyP95
-          expr: vigneshwara:latency:p95_5m > 1
+            runbook_url: "{{ $rb }}#high-error-rate"
+        # Latency SLO: 95% of requests under 1s. Needs at least 50 requests in
+        # the window so a handful of slow calls at night do not alert.
+        - alert: HighLatency
+          expr: |
+            vigneshwara:latency:fast_ratio_rate30m < 0.95
+            and sum(increase(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[30m])) > 50
           for: 10m
           labels:
             severity: warning
           annotations:
-            summary: "p95 latency above 1s for 10 minutes"
-            runbook: "docs/OPERATIONS.md#high-latency"
+            summary: "Fewer than 95% of requests finished in under 1s over 30 minutes"
+            runbook_url: "{{ $rb }}#high-latency"
         - alert: InquiriesFailing
           expr: increase(app_inquiries_total{namespace="{{ $ns }}",result="error"}[10m]) > 0
           labels:
             severity: critical
           annotations:
             summary: "Customer inquiries are failing to save"
-            runbook: "docs/OPERATIONS.md#inquiries-failing"
+            runbook_url: "{{ $rb }}#inquiries-failing"
         - alert: NoReadyPods
           expr: kube_deployment_status_replicas_available{namespace="{{ $ns }}",deployment="{{ $ing }}"} < 1
           for: 1m
@@ -65,14 +76,30 @@ spec:
             severity: critical
           annotations:
             summary: "No ready pods for {{ $ing }}"
-            runbook: "docs/OPERATIONS.md#no-ready-pods"
+            runbook_url: "{{ $rb }}#no-ready-pods"
         - alert: PodRestarting
           expr: increase(kube_pod_container_status_restarts_total{namespace="{{ $ns }}",container="web"}[15m]) > 2
           labels:
             severity: warning
           annotations:
             summary: "A web pod restarted more than twice in 15 minutes"
-            runbook: "docs/OPERATIONS.md#pods-restarting"
+            runbook_url: "{{ $rb }}#pods-restarting"
+        # Catalogue queries fall back to an empty result when Supabase fails,
+        # so the page still returns 200 and the 5xx SLO does not see it.
+        - alert: SupabaseErrors
+          expr: sum(increase(app_dependency_request_duration_seconds_count{namespace="{{ $ns }}",dependency="supabase",outcome="error"}[10m])) > 0
+          labels:
+            severity: critical
+          annotations:
+            summary: "Supabase queries are failing; pages are rendering without products"
+            runbook_url: "{{ $rb }}#supabase-errors"
+        - alert: NotificationsFailing
+          expr: sum(increase(app_notifications_total{namespace="{{ $ns }}",result="failed"}[30m])) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: "Inquiry emails to the owner are failing (inquiries are still saved)"
+            runbook_url: "{{ $rb }}#notifications-failing"
         - alert: SupabaseSlow
           expr: |
             histogram_quantile(0.95, sum by (le) (rate(app_dependency_request_duration_seconds_bucket{namespace="{{ $ns }}",dependency="supabase"}[10m]))) > 1
@@ -81,5 +108,5 @@ spec:
             severity: warning
           annotations:
             summary: "Supabase p95 latency above 1s"
-            runbook: "docs/OPERATIONS.md#supabase-slow"
+            runbook_url: "{{ $rb }}#supabase-slow"
 {{- end }}
