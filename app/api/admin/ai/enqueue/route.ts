@@ -8,8 +8,6 @@ import { sourceFingerprint } from "@/lib/ai/bytes";
 import { originalImages } from "@/lib/product-images";
 import type { Product } from "@/lib/supabase/types";
 
-export const runtime = "edge";
-
 /**
  * Create (or reuse) an AI image job for a product, then return the list of
  * variants for the client to generate one-by-one. Idempotent: a completed job

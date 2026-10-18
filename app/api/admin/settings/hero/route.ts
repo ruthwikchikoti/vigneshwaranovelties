@@ -4,8 +4,6 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { setHeroSettings, HERO_MIN, HERO_MAX } from "@/lib/admin/settings";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 const schema = z.object({
   rotation_seconds: z.coerce
     .number()

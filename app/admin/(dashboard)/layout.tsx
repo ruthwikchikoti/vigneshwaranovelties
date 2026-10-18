@@ -2,10 +2,6 @@ import { redirect } from "next/navigation";
 import { AdminBottomNav, AdminSidebar, AdminTopBar } from "@/components/admin/AdminNav";
 import { getAdminUser } from "@/lib/admin/auth";
 
-// This segment runs on the edge runtime. Supabase JS uses fetch, so it works
-// fine here.
-export const runtime = "edge";
-
 export default async function DashboardLayout({
   children,
 }: {

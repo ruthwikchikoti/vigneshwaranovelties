@@ -5,8 +5,6 @@ import { productPayloadSchema } from "@/lib/validations/product";
 import { slugify } from "@/lib/utils";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 export async function POST(req: Request) {
   const user = await getAdminUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });

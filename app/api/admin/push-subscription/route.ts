@@ -3,8 +3,6 @@ import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 
-export const runtime = "edge";
-
 const subscribeSchema = z.object({
   endpoint: z.string().url(),
   key_p256dh: z.string().min(1),

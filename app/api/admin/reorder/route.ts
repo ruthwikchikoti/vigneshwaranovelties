@@ -4,8 +4,6 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 // Offers are ordered by ends_at (they have no sort_order column), so they
 // aren't drag-reorderable. Products are listed with search/filter — drag in a
 // huge grid is impractical, so we skip them too.

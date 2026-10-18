@@ -4,8 +4,6 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { CMS_PAGE_SLUGS, upsertCmsPage, type CmsPageSlug } from "@/lib/admin/cms";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 const schema = z.object({
   title_en: z.string().trim().min(1, "Title (English) is required").max(180),
   title_te: z.string().trim().max(180).default(""),

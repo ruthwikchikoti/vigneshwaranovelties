@@ -4,8 +4,6 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { setHomeEditorial } from "@/lib/admin/settings";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 const schema = z.object({
   image_url: z.string().url("Please pick or upload a valid image"),
 });
