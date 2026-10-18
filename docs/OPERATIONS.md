@@ -5,10 +5,11 @@
 | Signal | Healthy | Source |
 |---|---|---|
 | Availability SLO | ≥ 99.5% of requests through the ingress are not 5xx (30-day window, error budget 0.5% ≈ 3.6 h/month) | `nginx_ingress_controller_requests` |
-| Latency SLO | p95 < 1 s | `nginx_ingress_controller_request_duration_seconds` |
-| User journey | every submitted inquiry is saved (`result="saved"`), no `result="error"` | `app_inquiries_total` |
+| Latency SLO | ≥ 95% of requests answered in under 1 s (30 min window) | `nginx_ingress_controller_request_duration_seconds` (`le="1.0"` bucket) |
+| User journey | every submitted inquiry is saved (`result="saved"`), no `result="error"`, and the owner is notified | `app_inquiries_total`, `app_notifications_total` |
 | Capacity | ≥ 2 ready pods, no restarts | kube-state-metrics |
-| Dependency | Supabase p95 < 1 s, `/api/ready?deps=1` returns 200 | `app_dependency_request_duration_seconds` |
+| Dependency | no failed Supabase queries, p95 < 1 s, `/api/ready?deps=1` returns 200 | `app_dependency_request_duration_seconds` |
+| Catalogue | the shop page lists products (checked by the smoke test after every deploy) | smoke-test Job |
 | Version | `/api/version` returns the tag in `values-local.yaml`, Argo CD `Synced` + `Healthy` | app, Argo CD |
 
 Why these SLOs: customers mostly browse on phones over mobile data, so a page
@@ -24,14 +25,20 @@ one page, plus error logs from Loki.
 | Alert | Fires when | Severity |
 |---|---|---|
 | `HighErrorBudgetBurn` | 5xx ratio > 7.2% over both 5 m and 1 h (14.4x burn rate) | critical |
-| `HighLatencyP95` | p95 > 1 s for 10 min | warning |
+| `HighLatency` | < 95% of requests under 1 s over 30 min (with ≥ 50 requests), for 10 min | warning |
 | `InquiriesFailing` | any `result="error"` inquiry in 10 min | critical |
 | `NoReadyPods` | 0 available replicas for 1 min | critical |
 | `PodRestarting` | > 2 restarts in 15 min | warning |
+| `SupabaseErrors` | any failed Supabase query in 10 min (pages render without products, still 200) | critical |
+| `NotificationsFailing` | any owner email that Brevo did not accept in 30 min | warning |
 | `SupabaseSlow` | Supabase p95 > 1 s for 10 min | warning |
 
-The burn-rate alert uses two windows so a short spike does not page, but a
-sustained problem pages within minutes.
+The burn-rate alert uses two windows so a short spike does not alert, but a
+sustained problem alerts within minutes. Each alert carries a `runbook_url`
+pointing at the matching section below.
+
+Alerts show in Prometheus, Alertmanager and Grafana; locally they are not
+sent anywhere (no receiver configured, see DECISIONS.md §9).
 
 ## Runbooks
 
@@ -56,7 +63,8 @@ kubectl -n argocd get application vigneshwara-web
 
 ### High latency
 
-1. Jaeger: sort traces by duration; is time spent in Supabase spans or in render?
+1. Jaeger: sort traces by duration; is time spent in Supabase spans, the
+   Brevo email call (inquiries wait for it, ~1 s) or render?
 2. CPU per pod panel near the limit? HPA at max (`kubectl get hpa`)? Raise
    `autoscaling.maxReplicas` or the CPU limit in `values-local.yaml`.
 
@@ -80,6 +88,33 @@ kubectl -n argocd get application vigneshwara-web
 `kubectl -n vigneshwara logs <pod> --previous` and `describe pod` (look for
 `OOMKilled`, then raise the memory limit; or liveness failures).
 
+### Supabase errors
+
+Customers see pages with no products (status 200) and inquiries fail.
+
+1. `curl -s "http://vigneshwara.local/api/ready?deps=1"`: does Supabase answer?
+   Check status.supabase.com and the project dashboard (paused project? quota?).
+2. Loki: `{namespace="vigneshwara", level="error"} |= "supabase"` for the error
+   message (auth error = rotated key, timeout = network or Supabase).
+3. If the key was rotated: recreate the Secret with
+   `scripts/devops/create-app-secret.sh` and
+   `kubectl -n vigneshwara rollout restart deploy/vigneshwara-web`.
+4. Pages rendered empty during the outage stay cached for up to 10 minutes
+   after recovery. To refresh at once: `kubectl -n vigneshwara rollout restart
+   deploy/vigneshwara-web` (new pods start with an empty cache).
+5. Verify: "Supabase query errors" panel back to 0, smoke test or
+   `curl -s http://vigneshwara.local/shop | grep -c 'href="/product/'` > 0.
+
+### Notifications failing
+
+Inquiries are saved, but the owner gets no email.
+
+1. Loki: `{namespace="vigneshwara"} |= "inquiry email"` shows Brevo's answer.
+2. `401 API Key is not enabled` / `unauthorized`: the Brevo key was disabled
+   or rotated. Re-enable it in Brevo, update `BREVO_API_KEY` in `.env.local`,
+   run `scripts/devops/create-app-secret.sh` and restart the deployment.
+3. Until fixed, tell the owner to check `/admin/inquiries` and WhatsApp.
+
 ### Supabase slow
 
 Outside the cluster. Check the Supabase dashboard/status. Catalog pages keep
@@ -87,11 +122,15 @@ working from cache; inquiries may fail, so tell the owner to watch WhatsApp.
 
 ## Rolling back a release
 
-Every deployment is a commit made by CI: `Deploy <sha> to local cluster`.
+Every new image is deployed by a commit made by CI after approval:
+`Deploy <sha> to local cluster` (changes `image.tag` and `image.digest`).
+A rollback is a revert of such a commit, made by a person. It skips CI and
+approval on purpose: it only points back to an image that was already
+scanned, signed, approved and run (see DECISIONS.md §6).
 
 ```bash
 git log --oneline -- deploy/helm/vigneshwara-web/values-local.yaml
-git revert <deploy-commit>      # puts the previous image tag back
+git revert <deploy-commit>      # puts the previous image tag and digest back
 git push                        # Argo CD syncs within ~60 s
 ```
 

@@ -60,21 +60,32 @@ The PostSync smoke test that Argo CD runs after every sync:
 {"status":"ready","missingConfig":[],"dependencies":[{"name":"supabase","ok":true,"latencyMs":1070}]}
 == storefront home page
 200
-== product page
+== shop page (labelled "product page" in this older smoke test; it is the catalogue listing)
 200
 == inquiry API rejects invalid input (no data written)
 smoke test passed
 ```
 
-### Latest deployment
+### Later deployments
 
-The same flow ran again for the last code/docs commit `e0a1c4f`, run
+The same flow ran again for `e0a1c4f`, run
 [39102801381](https://github.com/ruthwikchikoti/vigneshwaranovelties/actions/runs/39102801381):
 checks 06:19:55 to 06:20:32, image built, scanned and pushed by 06:23:16
 (`sha256:6dea4c07844a9207ce38c9a2fa4b0e20bec1a12129853c0fd12148210dade7d7`),
 approved and promoted at 06:27:37 (`dbc4f1d Deploy e0a1c4f to local cluster`).
 Argo CD synced it with no retries, the smoke test passed, and both pods return
 `"version":"e0a1c4f"` from `/api/version`.
+
+After the review fixes, `2c6f218` went through the hardened pipeline, run
+[39109961347](https://github.com/ruthwikchikoti/vigneshwaranovelties/actions/runs/39109961347):
+fixable HIGH/CRITICAL scan, push (tag not overwritten), CycloneDX SBOM, keyless
+cosign signature, approval, signature verified by the promote job, then
+`e1fef39 Deploy 2c6f218 to local cluster`. The pod runs
+`ghcr.io/ruthwikchikoti/vigneshwara-web:2c6f218@sha256:d395339453463c79cfb86bbf8f3c3d5a6091fda097317e293c2ddccb1aa3c457`
+and the new smoke test reports `8 product links`.
+
+The final commit of the PR is deployed the same way; its hash is in the PR
+description.
 
 The same SHA can be followed from the commit to the image tag, the pod label
 `app.kubernetes.io/version`, `/api/version`, the `app_build_info{version="37e1f27"}`
@@ -121,7 +132,11 @@ broken before this work and is not caused by it.
 
 Grafana dashboard **"Vigneshwara Web - Service Health"** (`/d/vigneshwara-web`).
 All four data sources passed their health check (Prometheus, Loki, Jaeger,
-Alertmanager). Every panel query returns data.
+Alertmanager). At 06:05, 12 of the 14 panels then on the dashboard returned
+data; "Supabase latency" was empty (the metric was only recorded by the
+readiness check) and "Error logs" was empty because there were no errors.
+Both were addressed after review: every Supabase query is now measured, and
+the outage drill below filled both panels.
 
 Prometheus at 06:05, after the drills below:
 
@@ -195,6 +210,70 @@ Users saw **no errors** during the bad release. With `maxUnavailable: 0`, the
 old pods are removed only after new ones are ready, and the new ones never
 became ready.
 
+### Rollback of a healthy release with `git revert`
+
+The documented procedure on a real CI deploy commit, with a request every
+0.5 s through the ingress:
+
+| Time | Event |
+|---|---|
+| 08:19:33 | `cf8b53b`: `git revert e1fef39` (the CI deploy of `2c6f218`) pushed |
+| 08:20:19 | first answer from the previous version `673a9a6` |
+| 08:20:38 | Argo CD `Synced/Healthy`, smoke test passed, pods on `673a9a6@sha256:ae158b5c...` |
+| 08:20:49 | `c4e9261`: rollback reverted (roll forward) |
+| 08:22:39 | all answers from `2c6f218` again; Argo CD Synced/Healthy, smoke test passed |
+
+566 requests, **566 returned 200**; during each switch both versions answered
+for a short time, as expected in a rolling update. Rollback took 65 s from push
+to healthy, most of it the Argo CD poll.
+
+### Supabase outage
+
+Argo CD auto-sync paused, then the HTTPS egress rule removed from the app's
+NetworkPolicy so the pods could not reach Supabase. No data was changed.
+
+```
+08:25:41 before: /shop products=8 ready=200 deps=200
+08:25:42 OUTAGE START
+08:25:51 /shop status=000 (client timeout 15 s)   home=200 ready=200 deps=not_ready
+08:27:06 /shop status=200 products=8              (pod with a fresh cache)
+08:27:28 /shop status=200 products=0              (other pod: empty catalogue, still 200)
+08:29:00 both pods 1/1 Running, never restarted, never unready
+08:29:12 POST /api/inquiry -> {"error":"db"} HTTP 500 in 10.5 s  (nothing saved)
+08:29:22 Supabase queries (10 m): success 25, error 13.7
+08:31:35 Loki: 23x "supabase query failed, serving empty result", 1x "inquiry insert failed"
+08:31:55 alerts: SupabaseErrors=firing, SupabaseSlow=pending
+08:31:55 OUTAGE END: auto-sync re-enabled, self-heal restored the NetworkPolicy in 4 s
+08:32:00 deps=ready, /shop lists 8 products on every pod
+```
+
+What this confirmed and what it changed:
+- Readiness without Supabase did its job: pods stayed in service and the
+  home page kept working.
+- Blocked connections hang rather than fail fast, so uncached pages first
+  timed out, then rendered **empty with status 200**. The 5xx SLO saw only
+  part of it; `SupabaseErrors` (added after review) is what caught it.
+- `InquiriesFailing` did **not** fire: the `error` counter series appeared
+  for the first time at 1, so `increase()` read 0. Fixed in the final commit
+  by starting every inquiry and notification counter at 0.
+- The alert rules sum over pods and so drop the `namespace` label; alerts are
+  found by name.
+
+### Feature flag
+
+`AI_GENERATION_ENABLED` turned on by a commit, without a new image:
+
+```
+08:32:09 before: {"version":"2c6f218","features":{"aiGeneration":false}}
+08:32:12 pushed adf42d3 "Turn on AI generation flag (feature flag drill)"
+08:35:30 Argo CD Synced/Healthy at adf42d3 (ConfigMap changed, checksum
+         annotation rolled the pods)
+         {"version":"2c6f218","pod":"...-rqcvn","features":{"aiGeneration":true}}
+         {"version":"2c6f218","pod":"...-z7zz9","features":{"aiGeneration":true}}
+```
+
+Same image, new pods with the new config. The final commit turns it off again.
+
 ### Pod failure
 
 A pod was deleted at 06:01:22 while `/shop` was requested every 0.25 s:
@@ -220,7 +299,7 @@ $ curl -s -o /dev/null -w '%{http_code}' http://vigneshwara.local/api/metrics
 404                                              <- metrics need the bearer token
 ```
 
-## 7. Problems found while verifying (fixed in `9f0acd6` and `b9b945a`)
+## 7. Problems found while verifying
 
 Bringing the stack up and checking each signal exposed problems that a
 config review alone would have missed:
@@ -228,8 +307,25 @@ config review alone would have missed:
 | Problem | Cause | Fix |
 |---|---|---|
 | No ingress request metrics, so the SLO panels were empty | The minikube ingress addon starts the controller with metrics turned off and does not declare port 10254 | Bootstrap patches in `--enable-metrics=true`; the PodMonitor rewrites the scrape address to `:10254` |
-| Log lines arrived as Docker JSON, with no `level` label | minikube's docker runtime writes Docker-format logs, not CRI-format | Promtail `docker: {}` stage; the app selector uses the `app` label |
+| Log lines arrived as Docker JSON, with no `level` label (after the fix, lines written by the JSON logger get a `level`; at first only the inquiry route used it, so after review the email, push and data code were moved to it too) | minikube's docker runtime writes Docker-format logs, not CRI-format | Promtail `docker: {}` stage; the app selector uses the `app` label |
 | Grafana could not query Jaeger (404) | Jaeger 2.21 removed the `/api/services` API that Grafana still uses | Pinned Jaeger 2.20.0 (tested 2.10 to 2.21 locally) |
 | CPU and memory panels were empty | With cri-dockerd, cAdvisor has no `container` label | Panels select by pod name |
 | 5xx ratio returned no data when there were no errors | `sum()` over no series is empty, not 0 | `or vector(0)` |
 | Each sync failed and retried for about a minute after a rollout | The built-in Argo CD HPA health check reports Degraded until new pods have CPU metrics | Custom HPA health check: Progressing instead of Degraded |
+
+After an independent review against the brief, further problems were fixed in
+`a4c1a43`, `bf4d146`, `45c6fab` and `2c6f218`: failures that return 200 had no
+signal (Supabase, owner email), probe requests filled Jaeger, p95 alerting was
+noisy at low traffic, OpenSSL fixes were missing from the base image (now
+gated on fixable HIGH), tags could be overwritten, images were unsigned, and
+the approval could be bypassed by an admin.
+
+Runs `39095716374` and `39101832046` show a cancelled promote step: they were
+older commits superseded by a newer run before approval, so they were
+cancelled rather than deploying an outdated build.
+
+Dev-only packages (ESLint and Vitest tooling) still report 7 high and 2
+moderate advisories; they are not in the image. Production dependencies: 0.
+`braces` has no fixed release yet, and npm 10 fails with an internal error when
+rewriting this lockfile with the other overrides, so they are left for
+Dependabot after merge.

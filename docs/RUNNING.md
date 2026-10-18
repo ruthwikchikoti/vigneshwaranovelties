@@ -70,13 +70,15 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 1. Commit and push to `devops/final-project` (or `main`).
 2. GitHub Actions runs: lint, typecheck, tests → gitleaks, npm audit, Trivy
    config → Helm lint + schema check → image build → container smoke test →
-   Trivy image scan → push `ghcr.io/ruthwikchikoti/vigneshwara-web:<sha>`.
+   Trivy image scan → push `ghcr.io/ruthwikchikoti/vigneshwara-web:<sha>`
+   (never overwriting an existing tag) → SBOM → cosign signature.
 3. The **Promote** job waits for approval (GitHub → Actions → the run →
    *Review deployments* → `local-cluster` → Approve).
-4. It commits `Deploy <sha> to local cluster`, changing `image.tag`.
+4. It verifies the signature and commits `Deploy <sha> to local cluster`,
+   changing `image.tag` and `image.digest`.
 5. Argo CD notices within ~60 s, renders the chart and does a rolling update.
 6. The PostSync smoke-test Job checks the new version, readiness with Supabase,
-   the home and shop pages, and the inquiry API. Argo CD shows the sync as
+   the home page, that the shop page lists products, and the inquiry API. Argo CD shows the sync as
    succeeded only if it passes.
 7. Verify: `curl http://vigneshwara.local/api/version` shows the new `<sha>`.
 
@@ -131,5 +133,25 @@ minikube delete
   72 h of logs; Prometheus 3 days.
 - **Alertmanager has no receiver** configured (no Slack/email); alerts are
   visible in Prometheus/Alertmanager UI and Grafana.
+- **SLO window.** The SLOs are defined over 30 days but Prometheus keeps 3
+  days here, so the error-budget panel covers the last 3 days.
+- **Brevo key disabled.** At the time of writing Brevo rejects the API key in
+  `.env.local` (`401 API Key is not enabled`), so inquiries are saved but the
+  owner email is not sent. `NotificationsFailing` reports it. This was already
+  the case at the baseline; the fix is re-enabling the key in Brevo.
+- **Supabase outage = empty catalogue after 10 min.** Pages rendered during an
+  outage show no products with status 200 (existing data-layer behaviour).
+  It is detected (`SupabaseErrors`, smoke test), not prevented.
+- **Platform components are not under GitOps.** Argo CD and the monitoring
+  stack are installed once by the bootstrap script, so drift in them is not
+  detected.
+- **One person approves their own releases** and has push access to the
+  deploy file; see DECISIONS.md §6.
+- **Signatures are checked by the pipeline, not by the cluster** (no
+  admission policy).
+- **Dependabot** runs from the config on the default branch, so it starts
+  once this PR is merged (vulnerability alerts are already on).
+- **Disk.** minikube with the docker driver shares the host disk; keep at
+  least 15 GB free or Kubernetes starts evicting pods.
 - AI image generation is disabled in this environment (feature flag) and its
   AWS credentials are not deployed.

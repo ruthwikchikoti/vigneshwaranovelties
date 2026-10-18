@@ -8,7 +8,7 @@
 | Repository | https://github.com/ruthwikchikoti/vigneshwaranovelties |
 | Baseline commit | [`267cc62`](https://github.com/ruthwikchikoti/vigneshwaranovelties/commit/267cc62e226b49403aef96cc0022fb1eb2cedb04) (tag `baseline`) |
 | Pull request | [#6](https://github.com/ruthwikchikoti/vigneshwaranovelties/pull/6) `devops/final-project` → `main` |
-| Final commit | head of the PR at submission time (given with the submission) |
+| Final commit | the `Deploy <sha> to local cluster` commit at the head of PR #6; the exact hash is stated in the PR description |
 
 ## The application
 
@@ -49,7 +49,8 @@ See the PR description and [docs/](.) for detail.
   Loki logs, Jaeger traces, runbooks
 - **Security:** secrets outside git, least-privilege CI tokens, SHA-pinned
   actions, Pod Security `restricted`, NetworkPolicy, no SA token, metrics auth,
-  Argo CD project whitelist, Dependabot
+  Argo CD project whitelist, image signing and SBOM, digest pinning,
+  branch rulesets, Dependabot (active after merge)
 
 ## Run instructions
 

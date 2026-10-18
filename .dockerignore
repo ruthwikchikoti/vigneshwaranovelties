@@ -1,13 +1,7 @@
 # Keep the build context small and free of secrets.
-.git
-.github
+# Hidden files and folders: git, CI config, tool caches and local .env files.
+.*
 node_modules
-.next
-.vercel
-.wrangler
-.claude
-.env*
-!.env.example
 *.tsbuildinfo
 deploy
 docs

@@ -103,8 +103,8 @@ flowchart LR
 |---|---|---|
 | One pod crashes / hangs | Liveness probe restarts it; readiness removes it from the Service | 2+ replicas, PDB `minAvailable: 1`, rolling updates with `maxUnavailable: 0` |
 | Bad release (crashes or fails readiness) | New pods never become ready | Old pods keep serving; rollout stalls; Argo CD shows Degraded; roll back by reverting the tag commit |
-| Supabase down or slow | Inquiries fail (500), admin unusable | Catalog pages still served from ISR cache, because readiness does **not** depend on Supabase (otherwise every pod would go unready and the whole site would 503) |
-| Brevo down | Owner gets no email | Inquiry still saved and visible in `/admin` |
+| Supabase down or slow | Inquiries fail (500), admin unusable. Catalogue pages keep serving their cached copy until it expires (10 min); after that they re-render **without products but with status 200**, because the data layer falls back to empty results | Pods stay ready (readiness does **not** depend on Supabase, otherwise every pod would go unready and the whole site would 503). Every failed query is counted (`app_dependency_request_duration_seconds{outcome="error"}`) and logged, the `SupabaseErrors` alert fires, and the post-deploy smoke test fails if the catalogue is empty. See the outage drill in EVIDENCE.md |
+| Brevo down or key rejected | Owner gets no email | Inquiry still saved and visible in `/admin`; `app_notifications_total{result="failed"}` and the `NotificationsFailing` alert make it visible |
 | ImageKit down | Product images missing | Pages still load; it is outside the cluster |
 | Observability stack down | No metrics/logs/traces | App is unaffected; export is fire-and-forget |
 | Argo CD down | No new deployments | Running app is unaffected |
@@ -137,11 +137,11 @@ the extra component for this shop.
 
 | Kind | Where | How it reaches the pod |
 |---|---|---|
-| Public build-time values (`NEXT_PUBLIC_*`) | GitHub Actions variables | Docker build args, compiled into the JS bundle |
+| Public values (`NEXT_PUBLIC_*`) | GitHub Actions variables **and** `values-local.yaml` | Build args compiled into the browser bundle, *and* the same values in the ConfigMap for server code, which reads some of them dynamically (`process.env[name]`) at runtime where Next.js does not inline them. Both copies must match; changing only the ConfigMap does not change what browsers get, that needs a new build |
 | Non-secret runtime config | `values.yaml` + `values-local.yaml` | ConfigMap → `envFrom` (pods restart on change via checksum annotation) |
 | Secrets (Supabase service key, Brevo key, metrics token) | `.env.local` on the operator's machine | `create-app-secret.sh` → Kubernetes Secret → `envFrom` |
 | Build-time secret (service key for pre-rendering) | GitHub Actions secret | BuildKit secret mount, not stored in any layer |
-| Image version | `values-local.yaml` `image.tag` | Set by CI, applied by Argo CD |
+| Image version | `values-local.yaml` `image.tag` + `image.digest` | Set by CI after approval, applied by Argo CD; the pod pulls `tag@digest` |
 
 Vercel (the existing production host) is untouched: the standalone output and
 in-memory ISR settings only apply when `BUILD_STANDALONE=1`, which the

@@ -36,7 +36,7 @@ function create(): AppMetrics {
     1,
   );
 
-  return {
+  const m: AppMetrics = {
     registry,
     inquiries: new Counter({
       name: "app_inquiries_total",
@@ -58,6 +58,12 @@ function create(): AppMetrics {
       registers: [registry],
     }),
   };
+
+  // Start every outcome at 0. A series that first appears with value 1 has no
+  // earlier sample, so increase() reads 0 and the first failure never alerts.
+  for (const result of ["saved", "error", "duplicate", "invalid", "spam"]) m.inquiries.inc({ result }, 0);
+  for (const result of ["sent", "failed"]) m.notifications.inc({ channel: "email", result }, 0);
+  return m;
 }
 
 export const metrics: AppMetrics = (g.__appMetrics ??= create());

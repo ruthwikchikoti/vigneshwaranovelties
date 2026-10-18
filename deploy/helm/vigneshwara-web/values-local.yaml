@@ -14,7 +14,6 @@ config:
   NEXT_PUBLIC_IMAGEKIT_URL: "https://ik.imagekit.io/VigneshwaraNovelties"
   NEXT_PUBLIC_WHATSAPP_NUMBER: "919866777053"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector.observability.svc:4318"
-  AI_GENERATION_ENABLED: "true"
 
 metrics:
   serviceMonitor:
