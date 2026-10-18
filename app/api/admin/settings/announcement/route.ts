@@ -4,8 +4,6 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { setAnnouncement } from "@/lib/admin/settings";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 const schema = z.object({
   text_en: z.string().trim().min(1, "English text is required").max(240, "Keep under 240 characters"),
   text_te: z.string().trim().max(240, "Keep under 240 characters").default(""),

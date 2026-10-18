@@ -61,7 +61,7 @@ export default async function AdminDashboard() {
         </div>
         {recent.length === 0 ? (
           <div className="border border-dashed border-ink/15 p-8 text-center text-sm text-ink/50">
-            No inquiries yet. They'll appear here as customers submit them.
+            No inquiries yet. They&apos;ll appear here as customers submit them.
           </div>
         ) : (
           <ul className="border border-ink/10 divide-y divide-ink/10">

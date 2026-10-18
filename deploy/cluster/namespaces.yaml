@@ -1,0 +1,25 @@
+# The app namespace enforces the "restricted" Pod Security Standard: pods that
+# run as root, allow privilege escalation or keep Linux capabilities are
+# rejected at admission.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vigneshwara
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd

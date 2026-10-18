@@ -4,8 +4,6 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { offerPayloadSchema } from "@/lib/validations/category";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 function clean<T extends Record<string, unknown>>(input: T): Partial<T> {
   const out: Record<string, unknown> = { ...input };
   for (const k of Object.keys(out)) if (out[k] === "") out[k] = null;

@@ -46,13 +46,14 @@ export default async function ShopPage({ params, searchParams }: PageProps) {
   if (!Number.isFinite(parsed) || parsed < 1) {
     redirect(shopPath(locale, 1));
   }
-  let page = parsed;
+  const page = parsed;
 
   const [rawResult, offers] = await Promise.all([
     getAllProductsPaginated({ page, pageSize: SHOP_PAGE_SIZE }),
     getOffers(),
   ]);
-  let { products, total } = rawResult;
+  const { total } = rawResult;
+  let { products } = rawResult;
   const totalPages = Math.max(1, Math.ceil(total / SHOP_PAGE_SIZE));
 
   if (total > 0 && page > totalPages) {

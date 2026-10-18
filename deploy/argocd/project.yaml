@@ -1,0 +1,27 @@
+# Limits what Argo CD may do for this app: only this repo, only the
+# vigneshwara namespace, and only the resource kinds the chart contains.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: vigneshwara
+  namespace: argocd
+spec:
+  description: Vigneshwara Novelties storefront
+  sourceRepos:
+    - https://github.com/ruthwikchikoti/vigneshwaranovelties.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: vigneshwara
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - { group: "", kind: ConfigMap }
+    - { group: "", kind: Service }
+    - { group: "", kind: ServiceAccount }
+    - { group: apps, kind: Deployment }
+    - { group: batch, kind: Job }
+    - { group: autoscaling, kind: HorizontalPodAutoscaler }
+    - { group: policy, kind: PodDisruptionBudget }
+    - { group: networking.k8s.io, kind: Ingress }
+    - { group: networking.k8s.io, kind: NetworkPolicy }
+    - { group: monitoring.coreos.com, kind: ServiceMonitor }
+    - { group: monitoring.coreos.com, kind: PrometheusRule }

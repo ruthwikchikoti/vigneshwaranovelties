@@ -5,8 +5,6 @@ import { aiImages } from "@/lib/product-images";
 import { aiConfigured } from "@/lib/ai/config";
 import type { ProductImage } from "@/lib/supabase/types";
 
-export const runtime = "edge";
-
 /** Current AI job + the product's AI variant rows, for the admin review panel. */
 export async function GET(req: Request) {
   const user = await getAdminUser();

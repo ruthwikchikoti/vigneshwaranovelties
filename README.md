@@ -140,3 +140,24 @@ Realistic capacity: ~50K monthly visitors at ₹65/mo (domain only).
 ---
 
 Built with care, for an heirloom that deserves a digital home.
+
+## 9. Kubernetes, CI/CD and operations
+
+The app also runs on Kubernetes (local minikube) with a GitOps pipeline:
+
+```
+push → GitHub Actions (lint, tests, security scans, image build + scan → GHCR)
+     → approval → CI commits new image tag → Argo CD syncs Helm chart → rolling update
+     → post-sync smoke test → Prometheus / Loki / Jaeger / Grafana
+```
+
+| Doc | Contents |
+|---|---|
+| [docs/RUNNING.md](docs/RUNNING.md) | Prerequisites, setup, deploy, rollback, known limitations |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, request paths, failure boundaries |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Choices and tradeoffs |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | SLOs, alerts, runbooks |
+| [docs/EVIDENCE.md](docs/EVIDENCE.md) | Pipeline runs, deployment and user-journey evidence |
+
+Main files: `Dockerfile`, `.github/workflows/ci.yml`, `deploy/helm/vigneshwara-web/`,
+`deploy/argocd/`, `deploy/observability/`, `scripts/devops/`.

@@ -1,0 +1,11 @@
+# Keep the build context small and free of secrets.
+# Hidden files and folders: git, CI config, tool caches and local .env files.
+.*
+node_modules
+*.tsbuildinfo
+deploy
+docs
+__tests__
+coverage
+Dockerfile
+.dockerignore

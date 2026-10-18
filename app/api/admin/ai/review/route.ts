@@ -4,8 +4,6 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { reviewSchema } from "@/lib/validations/ai";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 const BUCKET = "product-images";
 
 /** Extract the in-bucket object path from a Supabase public storage URL. */

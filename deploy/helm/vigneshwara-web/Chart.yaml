@@ -1,0 +1,7 @@
+apiVersion: v2
+name: vigneshwara-web
+description: Vigneshwara Novelties storefront and admin (Next.js)
+type: application
+version: 0.1.0
+# appVersion is informational; the deployed version is image.tag (a git SHA).
+appVersion: "0.1.0"

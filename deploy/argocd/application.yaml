@@ -1,0 +1,32 @@
+# Argo CD keeps the vigneshwara namespace equal to what git says:
+# chart deploy/helm/vigneshwara-web rendered with values-local.yaml.
+# CI changes image.tag in that file; Argo CD notices and rolls it out.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vigneshwara-web
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: vigneshwara
+  source:
+    repoURL: https://github.com/ruthwikchikoti/vigneshwaranovelties.git
+    # Tracks the project branch while the PR is open; switch to main after merge.
+    targetRevision: devops/final-project
+    path: deploy/helm/vigneshwara-web
+    helm:
+      releaseName: vigneshwara-web
+      valueFiles:
+        - values-local.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vigneshwara
+  syncPolicy:
+    automated:
+      prune: true      # delete resources removed from git
+      selfHeal: true   # undo manual kubectl changes (drift)
+    retry:
+      limit: 3
+      backoff: { duration: 10s, factor: 2, maxDuration: 1m }
+  revisionHistoryLimit: 10

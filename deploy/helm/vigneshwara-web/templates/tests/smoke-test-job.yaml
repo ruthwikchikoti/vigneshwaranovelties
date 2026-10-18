@@ -1,0 +1,75 @@
+{{- if .Values.smokeTest.enabled }}
+# Post-deploy smoke test. Helm runs it after install/upgrade and Argo CD maps
+# the same hook to PostSync, so a sync is only "Succeeded" when the new
+# version actually serves the user journey.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "app.fullname" . }}-smoke-test
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: smoke-test
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 180
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: smoke-test
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: smoke
+          image: {{ .Values.smokeTest.image }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: BASE
+              value: "http://{{ include "app.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}"
+            - name: EXPECTED_VERSION
+              value: {{ .Values.image.tag | quote }}
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              echo "== version (expect $EXPECTED_VERSION)"
+              # The Service may still route to old pods for a few seconds.
+              for i in $(seq 1 20); do
+                v=$(curl -fsS "$BASE/api/version")
+                echo "$v"
+                echo "$v" | grep -q "\"version\":\"$EXPECTED_VERSION\"" && break
+                [ "$i" = 20 ] && { echo "new version not serving"; exit 1; }
+                sleep 3
+              done
+              echo "== readiness incl. Supabase"
+              curl -fsS "$BASE/api/ready?deps=1"; echo
+              echo "== storefront home page"
+              curl -fsS -o /dev/null -w "%{http_code}\n" "$BASE/"
+              echo "== shop catalogue page lists products"
+              # Supabase failures render an empty catalogue with 200, so check
+              # the content too, not only the status code.
+              n=$(curl -fsS "$BASE/shop" | grep -o 'href="/product/' | wc -l)
+              echo "$n product links"
+              [ "$n" -gt 0 ] || { echo "FAIL: catalogue is empty"; exit 1; }
+              echo "== inquiry API rejects invalid input (no data written)"
+              code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST -H 'content-type: application/json' -d '{}' "$BASE/api/inquiry")
+              [ "$code" = 422 ] || { echo "expected 422, got $code"; exit 1; }
+              echo "smoke test passed"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+{{- end }}

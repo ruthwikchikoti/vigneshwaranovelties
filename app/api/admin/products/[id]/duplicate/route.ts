@@ -4,8 +4,6 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { slugify } from "@/lib/utils";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -29,7 +27,7 @@ export async function POST(
     const newTitleTe = original.title_te ? `${original.title_te} (Copy)` : null;
 
     // Ensure the slug is unique by appending -copy plus a short suffix if needed.
-    let baseSlug = slugify(newTitleEn);
+    const baseSlug = slugify(newTitleEn);
     let candidate = baseSlug;
     let suffix = 1;
     // Quick uniqueness loop — caps at 10 tries (more than enough).

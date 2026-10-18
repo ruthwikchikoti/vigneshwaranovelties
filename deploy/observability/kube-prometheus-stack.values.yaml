@@ -1,0 +1,63 @@
+# Prometheus + Alertmanager + Grafana + kube-state-metrics + node-exporter.
+# Sized for a single-node minikube.
+fullnameOverride: kube-prometheus-stack
+
+prometheus:
+  prometheusSpec:
+    retention: 3d
+    resources:
+      requests: { cpu: 100m, memory: 512Mi }
+      limits: { memory: 1536Mi }
+    # Pick up ServiceMonitors/PodMonitors/Rules from every namespace that
+    # carry the release label.
+    serviceMonitorSelector:
+      matchLabels: { release: kube-prometheus-stack }
+    podMonitorSelector:
+      matchLabels: { release: kube-prometheus-stack }
+    ruleSelector:
+      matchLabels: { release: kube-prometheus-stack }
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests: { cpu: 10m, memory: 32Mi }
+
+grafana:
+  # Admin password comes from a Secret created by bootstrap-cluster.sh,
+  # not from this file.
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      uid: loki
+      url: http://loki.observability.svc:3100
+      jsonData:
+        derivedFields:
+          # Click a trace_id in a log line to open the trace in Jaeger.
+          - name: trace_id
+            matcherRegex: '"trace_id":"(\w+)"'
+            datasourceUid: jaeger
+            url: "$${__value.raw}"
+    - name: Jaeger
+      type: jaeger
+      uid: jaeger
+      url: http://jaeger-query.observability.svc:16686
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts: [grafana.vigneshwara.local]
+
+# minikube runs these control-plane parts in ways the default scrape config
+# cannot reach; disabling avoids permanently-firing "target down" alerts.
+kubeControllerManager: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeEtcd: { enabled: false }
+kubeProxy: { enabled: false }

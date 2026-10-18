@@ -258,6 +258,7 @@ async function run() {
     // Mock fetch
     let capturedRequest: { url: string; method: string; headers: Record<string, string>; body: Uint8Array } | null = null;
     const originalFetch = globalThis.fetch;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     globalThis.fetch = async (input: any, init: any) => {
       capturedRequest = {
         url: typeof input === "string" ? input : input.url,

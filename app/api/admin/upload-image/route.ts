@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminUser } from "@/lib/admin/auth";
 
-export const runtime = "edge";
-
 const BUCKET = "product-images";
 
 const isSupabaseConfigured = () =>

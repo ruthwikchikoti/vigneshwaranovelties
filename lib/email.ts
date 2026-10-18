@@ -1,4 +1,5 @@
 import "server-only";
+import { log } from "./observability/log";
 
 /**
  * Email backend — Brevo HTTP API.
@@ -47,7 +48,7 @@ export async function sendInquiryEmail(inquiry: Inquiry): Promise<EmailResult> {
     if (!process.env.BREVO_FROM_EMAIL) missing.push("BREVO_FROM_EMAIL");
     if (!process.env.INQUIRY_NOTIFICATION_EMAIL) missing.push("INQUIRY_NOTIFICATION_EMAIL");
     const reason = `Email not sent — missing env: ${missing.join(", ")}`;
-    console.warn("[inquiry email]", reason);
+    log.warn("inquiry email not sent", { reason });
     return { sent: false, reason };
   }
 
@@ -77,16 +78,16 @@ export async function sendInquiryEmail(inquiry: Inquiry): Promise<EmailResult> {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       const reason = `Brevo returned ${res.status}: ${text || res.statusText}`;
-      console.error("[inquiry email]", reason);
+      log.error("inquiry email rejected by Brevo", { status: res.status, reason });
       return { sent: false, reason };
     }
 
     const data = (await res.json().catch(() => ({}))) as { messageId?: string };
-    console.info(`[inquiry email] sent → ${process.env.INQUIRY_NOTIFICATION_EMAIL} (${data.messageId ?? "no id"})`);
+    log.info("inquiry email sent", { messageId: data.messageId });
     return { sent: true, provider: "brevo", messageId: data.messageId };
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
-    console.error("[inquiry email] fetch failed:", reason);
+    log.error("inquiry email request failed", { reason });
     return { sent: false, reason };
   }
 }

@@ -1,0 +1,19 @@
+# Ships container stdout from every node to Loki. The app logs JSON, so the
+# pipeline extracts level/msg and promotes "level" to a label for filtering.
+config:
+  clients:
+    - url: http://loki.observability.svc:3100/loki/api/v1/push
+  snippets:
+    pipelineStages:
+      # minikube with the docker driver writes Docker JSON log files.
+      # Use `cri: {}` instead on containerd/CRI-O clusters.
+      - docker: {}
+      - match:
+          selector: '{app="vigneshwara-web"}'
+          stages:
+            - json:
+                expressions: { level: level, trace_id: trace_id }
+            - labels: { level: "" }
+resources:
+  requests: { cpu: 20m, memory: 64Mi }
+  limits: { memory: 256Mi }

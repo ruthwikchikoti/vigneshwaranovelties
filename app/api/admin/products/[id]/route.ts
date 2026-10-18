@@ -4,8 +4,6 @@ import { getAdminUser } from "@/lib/admin/auth";
 import { productPayloadSchema } from "@/lib/validations/product";
 import { revalidateCache, CACHE_TAGS } from "@/lib/cache";
 
-export const runtime = "edge";
-
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
