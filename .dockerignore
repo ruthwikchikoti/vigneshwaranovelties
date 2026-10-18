@@ -1,0 +1,17 @@
+# Keep the build context small and free of secrets.
+.git
+.github
+node_modules
+.next
+.vercel
+.wrangler
+.claude
+.env*
+!.env.example
+*.tsbuildinfo
+deploy
+docs
+__tests__
+coverage
+Dockerfile
+.dockerignore
