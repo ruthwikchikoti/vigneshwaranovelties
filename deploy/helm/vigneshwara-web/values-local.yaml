@@ -2,8 +2,8 @@
 # image.tag and image.digest are updated by the CI pipeline after a successful
 # build, scan and signature, and only after a human approves the release.
 image:
-  tag: "673a9a6"
-  digest: "sha256:ae158b5c2e35c22b5ecf74fc6e319244e09c84cc139243d8ad87bcf2d91aef35"
+  tag: "2c6f218"
+  digest: "sha256:d395339453463c79cfb86bbf8f3c3d5a6091fda097317e293c2ddccb1aa3c457"
 
 ingress:
   host: vigneshwara.local
