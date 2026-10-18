@@ -1,14 +1,16 @@
 # syntax=docker/dockerfile:1.10
 
 # ---------- deps: install exact versions from the lockfile ----------
-FROM node:22.22-alpine3.22 AS deps
+# Base image pinned by digest so a rebuild of the same commit uses exactly the
+# same base. Dependabot proposes digest updates.
+FROM node:22.22-alpine3.22@sha256:cd7807368cf24826297cbad5dca1a44972ccfd770647db52a8c7589eb4599ac8 AS deps
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 # ---------- build: compile Next.js into a standalone server ----------
-FROM node:22.22-alpine3.22 AS build
+FROM node:22.22-alpine3.22@sha256:cd7807368cf24826297cbad5dca1a44972ccfd770647db52a8c7589eb4599ac8 AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -46,7 +48,7 @@ RUN --mount=type=secret,id=supabase_service_role_key,env=SUPABASE_SERVICE_ROLE_K
     npm run build
 
 # ---------- runtime: only the standalone server, as a non-root user ----------
-FROM node:22.22-alpine3.22 AS runtime
+FROM node:22.22-alpine3.22@sha256:cd7807368cf24826297cbad5dca1a44972ccfd770647db52a8c7589eb4599ac8 AS runtime
 WORKDIR /app
 
 ARG APP_VERSION=dev
@@ -67,8 +69,10 @@ ENV NODE_ENV=production \
     GIT_SHA=$GIT_SHA \
     BUILD_TIME=$BUILD_TIME
 
-# npm is not needed at runtime; removing it also removes its CVEs from scans.
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+# Pick up Alpine security fixes released after the base image was built
+# (e.g. OpenSSL), and drop npm: it is not needed at runtime and only adds CVEs.
+RUN apk upgrade --no-cache \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 COPY --from=build --chown=node:node /app/public ./public
 COPY --from=build --chown=node:node /app/.next/standalone ./

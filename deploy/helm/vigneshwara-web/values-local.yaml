@@ -1,7 +1,9 @@
 # Local minikube environment. Argo CD renders the chart with this file.
-# image.tag is updated by the CI pipeline after a successful build.
+# image.tag and image.digest are updated by the CI pipeline after a successful
+# build, scan and signature, and only after a human approves the release.
 image:
   tag: "673a9a6"
+  digest: "sha256:ae158b5c2e35c22b5ecf74fc6e319244e09c84cc139243d8ad87bcf2d91aef35"
 
 ingress:
   host: vigneshwara.local

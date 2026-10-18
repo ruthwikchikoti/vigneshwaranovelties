@@ -49,7 +49,8 @@ jobs:
           fetch-depth: 0       # scan full history for leaked secrets
       - name: Secret scan (gitleaks)
         run: |
-          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 \
+          docker run --rm -v "$PWD:/repo" \
+            ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
             git /repo --redact --no-banner --exit-code 1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -76,7 +77,9 @@ jobs:
       - name: Lint and validate rendered manifests against Kubernetes schemas
         run: |
           helm lint deploy/helm/vigneshwara-web -f deploy/helm/vigneshwara-web/values-local.yaml
-          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz | tar xz kubeconform
+          curl -sSLo kubeconform.tar.gz https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz
+          echo "9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883  kubeconform.tar.gz" | sha256sum -c -
+          tar xzf kubeconform.tar.gz kubeconform
           helm template vigneshwara-web deploy/helm/vigneshwara-web \
             -f deploy/helm/vigneshwara-web/values-local.yaml -n vigneshwara \
             | ./kubeconform -strict -summary -kubernetes-version 1.34.0 \
@@ -91,8 +94,10 @@ jobs:
       contents: read
       packages: write          # push to GHCR with the built-in token
       security-events: write
+      id-token: write          # keyless signing with Sigstore (no key to manage)
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
+      digest: ${{ steps.push.outputs.digest }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: meta
@@ -133,11 +138,11 @@ jobs:
           curl -fsS -o /dev/null localhost:3000/
           docker rm -f smoke
 
-      - name: Image vulnerability scan (fail on fixable critical)
+      - name: Image vulnerability scan (fail on fixable high/critical)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
-          severity: CRITICAL
+          severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
       - name: Image vulnerability report (SARIF, all severities)
@@ -162,9 +167,37 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Push image (immutable SHA tag)
+      - name: Push image (never overwrite an existing tag)
+        id: push
         if: github.event_name != 'pull_request'
-        run: docker push "$IMAGE:${{ steps.meta.outputs.tag }}"
+        env:
+          REF: ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+        run: |
+          # GHCR does not enforce immutable tags, so the pipeline does: a re-run
+          # of the same commit keeps the image that was already pushed.
+          if docker manifest inspect "$REF" >/dev/null 2>&1; then
+            echo "$REF already exists, not overwriting"
+          else
+            docker push "$REF"
+          fi
+          echo "digest=$(docker buildx imagetools inspect "$REF" | awk '/^Digest:/{print $2; exit}')" >> "$GITHUB_OUTPUT"
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        if: github.event_name != 'pull_request'
+      - name: SBOM (CycloneDX)
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}@${{ steps.push.outputs.digest }}
+          format: cyclonedx
+          output: sbom.cdx.json
+          skip-setup-trivy: true
+      - name: Sign image and attach SBOM (keyless, by digest)
+        if: github.event_name != 'pull_request'
+        env:
+          REF: ${{ env.IMAGE }}@${{ steps.push.outputs.digest }}
+        run: |
+          cosign sign --yes "$REF"
+          cosign attest --yes --type cyclonedx --predicate sbom.cdx.json "$REF"
 
   promote:
     name: Promote to local cluster (GitOps)
@@ -181,11 +214,21 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.ref_name }}
-      - name: Set image.tag in values-local.yaml
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Verify the image was signed by this workflow
+        env:
+          REF: ${{ env.IMAGE }}@${{ needs.image.outputs.digest }}
+        run: |
+          cosign verify "$REF" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp "^https://github.com/${{ github.repository }}/.github/workflows/ci.yml@" \
+            > /dev/null && echo "signature OK for $REF"
+      - name: Set image.tag and image.digest in values-local.yaml
         env:
           TAG: ${{ needs.image.outputs.tag }}
+          DIGEST: ${{ needs.image.outputs.digest }}
         run: |
-          sed -i -E "s/^(  tag: ).*/\1\"$TAG\"/" deploy/helm/vigneshwara-web/values-local.yaml
+          sed -i -E "s/^(  tag: ).*/\1\"$TAG\"/; s/^(  digest: ).*/\1\"$DIGEST\"/" deploy/helm/vigneshwara-web/values-local.yaml
           git diff
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

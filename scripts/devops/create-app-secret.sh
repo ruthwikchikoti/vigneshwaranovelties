@@ -26,14 +26,17 @@ get() { grep -E "^$1=" "$ENV_FILE" | head -1 | cut -d= -f2- | sed -E 's/^"(.*)"$
 METRICS_TOKEN="$(kubectl -n "$NS" get secret "$NAME" -o jsonpath='{.data.METRICS_TOKEN}' 2>/dev/null | base64 -d || true)"
 [ -n "$METRICS_TOKEN" ] || METRICS_TOKEN="$(openssl rand -hex 24)"
 
-args=(--from-literal=METRICS_TOKEN="$METRICS_TOKEN")
+# Values go through a private temp file, not command-line arguments, so they
+# never show up in `ps` output or shell history.
+tmp="$(mktemp)"; chmod 600 "$tmp"; trap 'rm -f "$tmp"' EXIT
+echo "METRICS_TOKEN=$METRICS_TOKEN" > "$tmp"
 for k in "${KEYS[@]}"; do
   v="$(get "$k")"
   [ -n "$v" ] || { echo "warning: $k is empty in $ENV_FILE" >&2; continue; }
-  args+=(--from-literal="$k=$v")
+  printf '%s=%s\n' "$k" "$v" >> "$tmp"
 done
 
 kubectl get ns "$NS" >/dev/null 2>&1 || kubectl create ns "$NS"
-kubectl -n "$NS" create secret generic "$NAME" "${args[@]}" --dry-run=client -o yaml \
+kubectl -n "$NS" create secret generic "$NAME" --from-env-file="$tmp" --dry-run=client -o yaml \
   | kubectl apply -f - >/dev/null
-echo "secret/$NAME applied in namespace $NS (${#args[@]} keys)"
+echo "secret/$NAME applied in namespace $NS ($(wc -l < "$tmp") keys)"
