@@ -22,11 +22,11 @@ spec:
           expr: sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[5m]))
         - record: vigneshwara:errors5xx:ratio_rate5m
           expr: |
-            sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}",status=~"5.."}[5m]))
+            (sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}",status=~"5.."}[5m])) or vector(0))
             / clamp_min(sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[5m])), 1e-9)
         - record: vigneshwara:errors5xx:ratio_rate1h
           expr: |
-            sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}",status=~"5.."}[1h]))
+            (sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}",status=~"5.."}[1h])) or vector(0))
             / clamp_min(sum(rate(nginx_ingress_controller_requests{exported_namespace="{{ $ns }}",ingress="{{ $ing }}"}[1h])), 1e-9)
         - record: vigneshwara:latency:p95_5m
           expr: |

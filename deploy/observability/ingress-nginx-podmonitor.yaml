@@ -13,6 +13,12 @@ spec:
     matchLabels:
       app.kubernetes.io/component: controller
   podMetricsEndpoints:
-    # minikube's ingress addon serves metrics on 10254 without a named port.
-    - portNumber: 10254
+    # minikube's ingress addon serves metrics on 10254 but does not declare
+    # that port on the pod, so select the declared http port and point the
+    # scrape address at 10254 instead.
+    - port: http
       path: /metrics
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_ip]
+          targetLabel: __address__
+          replacement: "$1:10254"

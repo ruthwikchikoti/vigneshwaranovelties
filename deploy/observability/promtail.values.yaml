@@ -5,9 +5,11 @@ config:
     - url: http://loki.observability.svc:3100/loki/api/v1/push
   snippets:
     pipelineStages:
-      - cri: {}
+      # minikube with the docker driver writes Docker JSON log files.
+      # Use `cri: {}` instead on containerd/CRI-O clusters.
+      - docker: {}
       - match:
-          selector: '{app_kubernetes_io_name="vigneshwara-web"}'
+          selector: '{app="vigneshwara-web"}'
           stages:
             - json:
                 expressions: { level: level, trace_id: trace_id }

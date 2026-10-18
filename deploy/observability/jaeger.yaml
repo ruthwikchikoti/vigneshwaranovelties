@@ -21,7 +21,9 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: jaeger
-          image: jaegertracing/jaeger:2.21.0
+          # 2.21 drops the /api/services query API that the Grafana Jaeger
+          # data source still calls; stay on 2.20 until Grafana catches up.
+          image: jaegertracing/jaeger:2.20.0
           ports:
             - { name: otlp-http, containerPort: 4318 }
             - { name: otlp-grpc, containerPort: 4317 }

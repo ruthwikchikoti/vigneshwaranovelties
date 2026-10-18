@@ -385,7 +385,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"vigneshwara\",container=\"web\"}[5m]))",
+              "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"vigneshwara\",pod=~\"vigneshwara-web-[a-z0-9]+-[a-z0-9]+\"}[5m]))",
               "legendFormat": "{{pod}}",
               "refId": "A",
               "datasource": {
@@ -416,7 +416,7 @@ data:
           },
           "targets": [
             {
-              "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"vigneshwara\",container=\"web\"})",
+              "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"vigneshwara\",pod=~\"vigneshwara-web-[a-z0-9]+-[a-z0-9]+\"})",
               "legendFormat": "{{pod}}",
               "refId": "A",
               "datasource": {
@@ -447,7 +447,7 @@ data:
           },
           "targets": [
             {
-              "expr": "{namespace=\"vigneshwara\", app_kubernetes_io_name=\"vigneshwara-web\", level=~\"error|warn\"}",
+              "expr": "{namespace=\"vigneshwara\", app=\"vigneshwara-web\", level=~\"error|warn\"}",
               "legendFormat": "",
               "refId": "A",
               "datasource": {

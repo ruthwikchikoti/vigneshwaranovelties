@@ -45,6 +45,13 @@ helm upgrade --install promtail grafana/promtail --version "$PROMTAIL_VERSION" -
 step "Jaeger (traces), ingress metrics, dashboards"
 kubectl apply -f deploy/observability/jaeger.yaml
 kubectl apply -f deploy/observability/ingress-nginx-podmonitor.yaml
+# The minikube ingress addon starts the controller with request metrics off.
+if ! kubectl -n ingress-nginx get deploy ingress-nginx-controller \
+    -o jsonpath='{.spec.template.spec.containers[0].args}' | grep -q enable-metrics=true; then
+  kubectl -n ingress-nginx patch deploy ingress-nginx-controller --type json \
+    -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--enable-metrics=true"}]'
+  kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=180s
+fi
 kubectl apply -f deploy/observability/grafana-dashboard.yaml
 
 step "Argo CD"
