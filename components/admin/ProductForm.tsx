@@ -555,7 +555,7 @@ function FieldError({ children }: { children: React.ReactNode }) {
 
 function PriceHint({ price, pct }: { price: number; pct: number }) {
   if (!pct || pct <= 0) {
-    return <p className="text-xs text-ink/40 mt-1.5">Leave blank if there's no sale.</p>;
+    return <p className="text-xs text-ink/40 mt-1.5">Leave blank if there&apos;s no sale.</p>;
   }
   if (pct >= 100) {
     return (

@@ -6,11 +6,12 @@ import { cn } from "@/lib/utils";
 import { Seal } from "@/components/brand/Seal";
 
 function svg(d: string) {
-  return ({ size = 20 }: { size?: number }) => (
+  const Icon = ({ size = 20 }: { size?: number }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d={d} />
     </svg>
   );
+  return Icon;
 }
 
 const HomeIcon = svg("M3 11.5L12 4l9 7.5V20a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1v-8.5z");
