@@ -66,6 +66,16 @@ The PostSync smoke test that Argo CD runs after every sync:
 smoke test passed
 ```
 
+### Latest deployment
+
+The same flow ran again for the last code/docs commit `e0a1c4f`, run
+[39102801381](https://github.com/ruthwikchikoti/vigneshwaranovelties/actions/runs/39102801381):
+checks 06:19:55 to 06:20:32, image built, scanned and pushed by 06:23:16
+(`sha256:6dea4c07844a9207ce38c9a2fa4b0e20bec1a12129853c0fd12148210dade7d7`),
+approved and promoted at 06:27:37 (`dbc4f1d Deploy e0a1c4f to local cluster`).
+Argo CD synced it with no retries, the smoke test passed, and both pods return
+`"version":"e0a1c4f"` from `/api/version`.
+
 The same SHA can be followed from the commit to the image tag, the pod label
 `app.kubernetes.io/version`, `/api/version`, the `app_build_info{version="37e1f27"}`
 metric, and the `version` field in every log line and trace.
