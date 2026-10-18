@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createServiceClient } from "@/lib/supabase/server";
+import { log } from "@/lib/observability/log";
 import { sendWebPush } from "@/lib/web-push";
 import type { PushSubscriptionRecord } from "@/lib/supabase/types";
 
@@ -21,7 +22,7 @@ export async function notifyAdminsPush(inquiry: InquirySummary): Promise<void> {
     const privateKey = process.env.VAPID_PRIVATE_KEY;
 
     if (!publicKey || !privateKey) {
-      console.info("[push] VAPID keys not configured — skipping push notifications");
+      log.info("push skipped: VAPID keys not configured");
       return;
     }
 
@@ -34,13 +35,13 @@ export async function notifyAdminsPush(inquiry: InquirySummary): Promise<void> {
       .select("*");
 
     if (error) {
-      console.error("[push] Failed to read subscriptions:", error.message);
+      log.error("push: failed to read subscriptions", { err: error.message });
       return;
     }
 
     const subs = (subscriptions ?? []) as PushSubscriptionRecord[];
     if (subs.length === 0) {
-      console.info("[push] No push subscriptions — skipping");
+      log.info("push skipped: no subscriptions");
       return;
     }
 
@@ -80,15 +81,15 @@ export async function notifyAdminsPush(inquiry: InquirySummary): Promise<void> {
       if (result.status === "fulfilled") {
         const { success, status, error: pushError } = result.value;
         if (success) {
-          console.info(`[push] ✓ Sent to ${subs[i].endpoint.slice(0, 60)}…`);
+          log.info("push sent", { endpoint: subs[i].endpoint.slice(0, 60) });
         } else {
-          console.warn(`[push] ✗ ${subs[i].endpoint.slice(0, 60)}… — ${pushError}`);
+          log.warn("push failed", { endpoint: subs[i].endpoint.slice(0, 60), status, reason: pushError });
           if (status === 404 || status === 410) {
             staleEndpoints.push(subs[i].endpoint);
           }
         }
       } else {
-        console.warn(`[push] ✗ ${subs[i].endpoint.slice(0, 60)}… — ${result.reason}`);
+        log.warn("push failed", { endpoint: subs[i].endpoint.slice(0, 60), err: result.reason });
       }
     }
 
@@ -100,19 +101,17 @@ export async function notifyAdminsPush(inquiry: InquirySummary): Promise<void> {
         .in("endpoint", staleEndpoints);
 
       if (deleteError) {
-        console.error("[push] Failed to delete stale subscriptions:", deleteError.message);
+        log.error("push: failed to delete stale subscriptions", { err: deleteError.message });
       } else {
-        console.info(`[push] Cleaned up ${staleEndpoints.length} stale subscription(s)`);
+        log.info("push: removed stale subscriptions", { count: staleEndpoints.length });
       }
     }
 
     const succeeded = results.filter(
       (r) => r.status === "fulfilled" && r.value.success
     ).length;
-    console.info(
-      `[push] Done: ${succeeded}/${subs.length} delivered, ${staleEndpoints.length} stale removed`
-    );
+    log.info("push done", { delivered: succeeded, total: subs.length, stale: staleEndpoints.length });
   } catch (err) {
-    console.error("[push] Unexpected error:", err);
+    log.error("push: unexpected error", { err });
   }
 }

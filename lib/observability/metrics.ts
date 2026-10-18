@@ -14,6 +14,7 @@ import { Counter, Gauge, Histogram, Registry, collectDefaultMetrics } from "prom
 type AppMetrics = {
   registry: Registry;
   inquiries: Counter<"result">;
+  notifications: Counter<"channel" | "result">;
   dependencyLatency: Histogram<"dependency" | "outcome">;
 };
 
@@ -41,6 +42,12 @@ function create(): AppMetrics {
       name: "app_inquiries_total",
       help: "Customer inquiries received, by result",
       labelNames: ["result"],
+      registers: [registry],
+    }),
+    notifications: new Counter({
+      name: "app_notifications_total",
+      help: "Owner notifications for new inquiries, by channel and result",
+      labelNames: ["channel", "result"],
       registers: [registry],
     }),
     dependencyLatency: new Histogram({

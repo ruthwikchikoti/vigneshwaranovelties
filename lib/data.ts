@@ -2,6 +2,8 @@ import "server-only";
 import { createServiceClient } from "./supabase/server";
 import { cachedQuery, CACHE_TAGS } from "./cache";
 import type { Banner, Category, Offer, Product } from "./supabase/types";
+import { log } from "./observability/log";
+import { metrics } from "./observability/metrics";
 
 /**
  * SECURITY NOTE: All queries in this module use `createServiceClient()`, which
@@ -19,12 +21,19 @@ function isSupabaseConfigured(): boolean {
   return Boolean(url && !url.includes("placeholder"));
 }
 
+// Storefront pages degrade to an empty catalogue instead of erroring when
+// Supabase fails. That keeps the site up, but the page still returns 200, so
+// every failure is recorded here (metric + error log) and alerted on.
 async function safe<T>(real: () => Promise<T>, fallback: T): Promise<T> {
   if (!isSupabaseConfigured()) return fallback;
+  const end = metrics.dependencyLatency.startTimer({ dependency: "supabase" });
   try {
-    return await real();
+    const result = await real();
+    end({ outcome: "success" });
+    return result;
   } catch (err) {
-    console.warn("[data] Supabase fetch failed, returning empty:", err);
+    end({ outcome: "error" });
+    log.error("supabase query failed, serving empty result", { err });
     return fallback;
   }
 }

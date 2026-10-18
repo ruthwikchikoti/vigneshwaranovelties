@@ -85,6 +85,7 @@ export async function POST(req: Request) {
     .catch((err) => log.error("admin push notification failed", { err }));
 
   const emailResult = await sendInquiryEmail(inquiry);
+  metrics.notifications.inc({ channel: "email", result: emailResult.sent ? "sent" : "failed" });
 
   metrics.inquiries.inc({ result: "saved" });
   log.info("inquiry saved", { source: inquiry.source, items: itemCount, email: emailResult });
